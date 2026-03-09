@@ -1,0 +1,32 @@
+{
+    "name": "smart-contracts",
+    "version": "1.0.0",
+    "description": "Smart contracts for polling system",
+    "main": "index.js",
+    "scripts": {
+        "test": "hardhat test"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "@nomicfoundation/hardhat-chai-matchers": "^2.1.0",
+        "@nomicfoundation/hardhat-ethers": "^4.0.4",
+        "@nomicfoundation/hardhat-ignition-ethers": "^3.0.7",
+        "@nomicfoundation/hardhat-network-helpers": "^3.0.3",
+        "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+        "@nomicfoundation/hardhat-verify": "^3.0.10",
+        "@typechain/ethers-v6": "^0.5.1",
+        "@typechain/hardhat": "^9.1.0",
+        "@types/chai": "^5.2.3",
+        "@types/mocha": "^10.0.10",
+        "@types/node": "^25.2.3",
+        "chai": "^6.2.2",
+        "ethers": "^6.16.0",
+        "hardhat": "^2.28.5",
+        "hardhat-gas-reporter": "^2.3.0",
+        "solidity-coverage": "^0.8.17",
+        "ts-node": "^10.9.2",
+        "typechain": "^8.3.2",
+        "typescript": "^5.9.3"
+    }
+}

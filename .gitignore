@@ -1,0 +1,12 @@
+node_modules/
+.env
+.DS_Store
+dist/
+build/
+*.log
+smart-contracts/artifacts/
+smart-contracts/cache/
+frontend/build/
+backend/node_modules/
+frontend/node_modules/
+smart-contracts/node_modules/
