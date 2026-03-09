@@ -40,8 +40,8 @@ const Vote = () => {
       const tx = await contract.vote(pollId, selectedOption);
       await tx.wait(); // Wait for transaction to be mined
 
-      // Optionally update backend (though blockchain is source of truth for counts)
-      // await axios.post(`http://localhost:5000/api/polls/${selectedPoll._id}/vote`, { optionIndex: selectedOption });
+      // Update backend
+      await axios.post(`http://localhost:5000/api/polls/${selectedPoll._id}/vote`, { optionIndex: selectedOption });
 
       alert("Vote submitted successfully!");
       setSelectedOption(null); // Reset selection

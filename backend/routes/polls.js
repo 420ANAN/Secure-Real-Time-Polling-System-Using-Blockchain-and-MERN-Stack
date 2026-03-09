@@ -14,12 +14,13 @@ router.get('/', async (req, res) => {
 
 // Create a poll
 router.post('/', async (req, res) => {
-    const { question, options, creator } = req.body;
+    const { question, options, creator, blockchainId } = req.body;
 
     const poll = new Poll({
         question,
         options: options.map(opt => ({ text: opt, votes: 0 })),
         creator,
+        blockchainId
     });
 
     try {

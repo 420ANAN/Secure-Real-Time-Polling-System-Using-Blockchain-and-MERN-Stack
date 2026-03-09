@@ -50,16 +50,16 @@ const CreatePoll = () => {
             // This depends on how we parse logs. ethers.js v6 makes it easier if ABI is correct.
             let blockchainId = null;
 
-            // Basic parsing logic (adjust based on actual event structure)
+            // Basic parsing logic (ethers.js v6)
             for (const log of receipt.logs) {
                 try {
                     const parsedLog = contract.interface.parseLog(log);
-                    if (parsedLog.name === 'PollCreated') {
-                        blockchainId = parsedLog.args[0].toString();
+                    if (parsedLog && parsedLog.name === 'PollCreated') {
+                        blockchainId = parsedLog.args.pollId.toString();
                         break;
                     }
                 } catch (err) {
-                    console.error("Log parse error", err);
+                    // Logs that don't match the interface will throw, which is fine
                 }
             }
 
