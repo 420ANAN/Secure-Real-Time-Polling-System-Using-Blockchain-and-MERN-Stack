@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
 import { WalletContext } from '../context/WalletContext';
 
 const Results = () => {
@@ -17,11 +18,10 @@ const Results = () => {
 
   useEffect(() => {
     fetchPolls();
-    const interval = setInterval(fetchPolls, 5000); // Poll every 5 seconds for updates
+    const interval = setInterval(fetchPolls, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch live counts from blockchain if contract is available
   useEffect(() => {
     if (!contract || polls.length === 0) return;
 
@@ -32,19 +32,13 @@ const Results = () => {
       for (let i = 0; i < polls.length; i++) {
         if (polls[i].blockchainId !== undefined && polls[i].blockchainId !== null) {
           try {
-            // blockchainId must be a number or string that the contract accepts
             const pollId = polls[i].blockchainId;
             const options = await contract.getOptions(pollId);
-
-            // options is array of structs or tuples [text, voteCount]
-            // Map specific option counts to local state
-            // Note: This matches arrays by index
             const newOptions = polls[i].options.map((opt, idx) => ({
               ...opt,
               votes: Number(options[idx].voteCount)
             }));
 
-            // Check for changes (deep comparison or just assume update if votes differ)
             const currentVotes = polls[i].options.map(o => o.votes).join(',');
             const newVotes = newOptions.map(o => o.votes).join(',');
 
@@ -52,61 +46,63 @@ const Results = () => {
               updatedPolls[i] = { ...polls[i], options: newOptions };
               hasUpdates = true;
             }
-
           } catch (err) {
             console.error(`Error fetching poll ${polls[i].blockchainId}:`, err);
           }
         }
       }
-
-      if (hasUpdates) {
-        setPolls(updatedPolls);
-      }
+      if (hasUpdates) setPolls(updatedPolls);
     };
 
     updateCounts();
-    // Optional: set up an interval for live updates, or listen to events
-    const interval = setInterval(updateCounts, 10000); // Check blockchain every 10s
+    const interval = setInterval(updateCounts, 10000);
     return () => clearInterval(interval);
-
-  }, [contract, polls.length]); // Re-run when contract loads or polls list changes size
+  }, [contract, polls.length]);
 
   return (
-    <div className="container mt-4">
-      <h2>Live Results</h2>
-      <div className="row">
-        {polls.map((poll) => (
-          <div className="col-md-6 mb-4" key={poll._id}>
-            <div className="card shadow-sm">
-              <div className="card-body">
-                <h5 className="card-title">{poll.question}</h5>
-                {poll.options.map((opt, idx) => {
-                  const totalVotes = poll.options.reduce((acc, curr) => acc + curr.votes, 0);
-                  const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+    <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', position: 'relative', color: '#FFF' }}>
+      <Link to="/" style={{ position: 'absolute', top: 30, left: 30, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8, zIndex: 10 }}>
+        <span style={{ fontSize: 20 }}>←</span> RETURN HOME
+      </Link>
 
-                  return (
-                    <div key={idx} className="mb-2">
-                      <div className="d-flex justify-content-between">
-                        <span>{opt.text}</span>
-                        <span>{opt.votes} votes ({percentage}%)</span>
-                      </div>
-                      <div className="progress">
-                        <div
-                          className="progress-bar"
-                          role="progressbar"
-                          style={{ width: `${percentage}%` }}
-                          aria-valuenow={percentage}
-                          aria-valuemin="0"
-                          aria-valuemax="100"
-                        ></div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      <div style={{ padding: '80px 40px', maxWidth: 960, margin: '0 auto' }}>
+        <h2 style={{ color: '#FFFFFF', fontSize: 36, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>Live Election Results</h2>
+        <p style={{ color: '#0EA5E9', fontSize: 16, marginBottom: 48, textAlign: 'center', fontWeight: 'bold' }}>REAL-TIME BLOCKCHAIN DATA</p>
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 32 }}>
+          {polls.length === 0 && (
+            <div style={{ textAlign: 'center', color: '#94A3B8', padding: 40, background: '#1B2A3B', borderRadius: 12 }}>
+              Connecting to blockchain network...
             </div>
-          </div>
-        ))}
+          )}
+          {polls.map((poll) => {
+             const totalVotes = poll.options.reduce((acc, curr) => acc + curr.votes, 0);
+             return (
+              <div key={poll._id} style={{ background: '#1B2A3B', padding: 32, borderRadius: 16, border: '1px solid #334155', boxShadow: '0 10px 25px rgba(0,0,0,0.3)' }}>
+                <h3 style={{ color: '#FFFFFF', fontSize: 22, fontWeight: 'bold', marginBottom: 24 }}>{poll.question}</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                  {poll.options.map((opt, idx) => {
+                    const percentage = totalVotes === 0 ? 0 : Math.round((opt.votes / totalVotes) * 100);
+                    return (
+                      <div key={idx}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8, fontSize: 15 }}>
+                          <span style={{ color: '#FFF', fontWeight: 'bold' }}>{opt.text}</span>
+                          <span style={{ color: '#94A3B8' }}>{opt.votes} votes ({percentage}%)</span>
+                        </div>
+                        <div style={{ height: 12, background: '#162032', borderRadius: 6, overflow: 'hidden' }}>
+                          <div style={{ width: `${percentage}%`, height: '100%', background: 'linear-gradient(90deg, #0EA5E9, #10B981)', transition: 'width 1s ease-in-out' }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div style={{ marginTop: 24, fontSize: 12, color: '#334155', textAlign: 'right' }}>
+                  Total Votes: {totalVotes.toLocaleString()}  •  Verified on Mainnet
+                </div>
+              </div>
+             );
+          })}
+        </div>
       </div>
     </div>
   );

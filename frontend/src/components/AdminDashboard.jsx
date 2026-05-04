@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { adminAPI } from '../api';
 
 const S = (x, y, w, h, bg) => ({
@@ -99,9 +100,12 @@ export default function AdminDashboard({ onNavigate }) {
       {/* Header */}
       <div style={S(0, 0, 960, 67, '#1B2A3B')} />
       <div style={S(0, 0, 960, 3, '#EF4444')} />
-      <img src="/image-1-1.png" alt="logo" style={{ position: 'absolute', left: 19, top: 13, width: 30, height: 30 }} />
-      <div style={T(59, 3, 440, 59, '#FFFFFF', 22, 'left', true)}>BlockVote Admin Dashboard</div>
-      <div style={T(528, 3, 412, 59, '#94A3B8', 12, 'right')}>Admin: 0x8A3F...d92B  ●  Connected  ●  Mainnet</div>
+      <Link to="/" style={{ ...T(20, 3, 140, 59, '#94A3B8', 12, 'left', true), textDecoration: 'none', cursor: 'pointer' }}>
+        ← RETURN HOME
+      </Link>
+      <img src="/image-1-1.png" alt="logo" style={{ position: 'absolute', left: 170, top: 13, width: 30, height: 30 }} />
+      <div style={T(210, 3, 440, 59, '#FFFFFF', 22, 'left', true)}>BlockVote Admin Dashboard</div>
+      <div style={T(528, 3, 412, 59, '#94A3B8', 12, 'right')}>Admin: 0x8A3F...d92B  ●  Connected</div>
 
       {/* Sidebar */}
       <div style={S(0, 67, 172, 475, '#1B2A3B')} />
