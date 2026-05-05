@@ -9,6 +9,22 @@ const Vote = require('../models/Vote');
 router.get('/elections', async (req, res) => {
     const { address } = req.query;
     try {
+        // Eligibility Check: Must have an APPROVED VoterApplication
+        if (address) {
+            const VoterApplication = require('../models/VoterApplication');
+            const application = await VoterApplication.findOne({ 
+                walletAddress: address.toLowerCase(), 
+                status: 'APPROVED' 
+            });
+            
+            if (!application) {
+                return res.status(403).json({ 
+                    message: 'Access Denied: You must be an approved voter to view elections. Please register and wait for Admin approval.',
+                    isEligible: false 
+                });
+            }
+        }
+
         const elections = await Election.find({ status: 'ACTIVE', emergencyStopped: false });
         
         // For each election, check if voter has already voted and is whitelisted
@@ -139,6 +155,18 @@ router.get('/results/:id', async (req, res) => {
 router.get('/stats/:address', async (req, res) => {
     try {
         const address = req.params.address;
+
+        // Eligibility Check
+        const VoterApplication = require('../models/VoterApplication');
+        const application = await VoterApplication.findOne({ 
+            walletAddress: address.toLowerCase(), 
+            status: 'APPROVED' 
+        });
+
+        if (!application) {
+            return res.json({ available: 0, voted: 0, pending: 0, isEligible: false });
+        }
+
         const activeElections = await Election.countDocuments({ status: 'ACTIVE', emergencyStopped: false });
         const votedCount = await Vote.countDocuments({ voterAddress: address });
         const allActive = await Election.find({ status: 'ACTIVE' });

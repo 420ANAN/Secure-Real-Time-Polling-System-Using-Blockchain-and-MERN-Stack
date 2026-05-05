@@ -13,6 +13,8 @@ export default function VoterPortal() {
   const [loading, setLoading] = useState(false);
   const [txStatus, setTxStatus] = useState(null); // { success: bool, hash: string, error: string }
   const [voterStats, setVoterStats] = useState({ available: 0, voted: 0 });
+  const [isEligible, setIsEligible] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     if (account) {
@@ -29,13 +31,19 @@ export default function VoterPortal() {
       setElections(res.data);
       const statsRes = await voterAPI.getStats(account);
       setVoterStats(statsRes.data);
+      setIsEligible(true);
     } catch (err) {
       console.error('Failed to load elections', err);
-      // Fallback for demo
-      setElections([
-        { _id: 'e1', title: 'General Election 2025', description: 'Vote for your parliamentary representative', hasVoted: false },
-        { _id: 'e2', title: 'Senate By-Election', description: 'Fill the vacant Senate seat for District 4', hasVoted: false }
-      ]);
+      if (err.response?.status === 403) {
+        setIsEligible(false);
+        setErrorMessage(err.response.data.message);
+      } else {
+        // Fallback for demo
+        setElections([
+          { _id: 'e1', title: 'General Election 2025', description: 'Vote for your parliamentary representative', hasVoted: false },
+          { _id: 'e2', title: 'Senate By-Election', description: 'Fill the vacant Senate seat for District 4', hasVoted: false }
+        ]);
+      }
     }
   };
 
@@ -65,7 +73,10 @@ export default function VoterPortal() {
       let txHash = "0x" + Math.random().toString(16).slice(2, 42); // Demo hash fallback
       
       if (contract) {
-        const tx = await contract.vote(selectedElection._id, selectedCandidate._id);
+        // Find the index of the candidate as optionIndex for the contract
+        const optionIndex = candidates.findIndex(c => c._id === selectedCandidate._id);
+        const pollId = selectedElection.blockchainId || 0; 
+        const tx = await contract.vote(pollId, Math.max(0, optionIndex));
         txHash = tx.hash;
       }
       
@@ -88,7 +99,7 @@ export default function VoterPortal() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', color: '#FFF', position: 'relative', overflowY: 'auto' }}>
+    <div style={{ height: '100%', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', color: '#FFF', position: 'relative', overflowY: 'auto' }}>
       
       {/* Header */}
       <header style={{ height: 80, background: '#1B2A3B', borderBottom: '3px solid #10B981', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px' }}>
@@ -105,44 +116,93 @@ export default function VoterPortal() {
         )}
       </header>
 
-      <main style={{ maxWidth: 1000, margin: '60px auto', padding: '0 20px' }}>
+      <main style={{ maxWidth: 1000, margin: '60px auto', padding: '0 20px 80px 20px' }}>
         
         {step === 'connect' && (
-          <div style={{ textAlign: 'center', padding: '80px 0' }}>
-            <div style={{ fontSize: 80, marginBottom: 24 }}>🦊</div>
-            <h2 style={{ fontSize: 36, fontWeight: 'bold', marginBottom: 16 }}>Connect Wallet</h2>
-            <p style={{ color: '#94A3B8', fontSize: 18, marginBottom: 48, maxWidth: 600, margin: '0 auto 48px' }}>
-              Verify your identity via MetaMask to access active elections and cast your vote securely on the blockchain.
-            </p>
-            <button onClick={connectWallet} style={{ padding: '16px 48px', background: '#10B981', color: '#000', border: 'none', borderRadius: 8, fontSize: 18, fontWeight: 'bold', cursor: 'pointer' }}>
-              Connect MetaMask
-            </button>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+            <div style={{ 
+              background: 'rgba(27, 42, 59, 0.6)', 
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              padding: '60px 40px', 
+              borderRadius: '24px', 
+              border: '1px solid rgba(16, 185, 129, 0.2)',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
+              textAlign: 'center',
+              maxWidth: '540px',
+              width: '100%'
+            }}>
+              <div style={{ 
+                width: '120px', height: '120px', 
+                margin: '0 auto 32px', 
+                background: 'linear-gradient(135deg, rgba(246, 133, 27, 0.2) 0%, rgba(226, 118, 37, 0.05) 100%)',
+                borderRadius: '50%',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                border: '1px solid rgba(246, 133, 27, 0.3)',
+                boxShadow: '0 0 30px rgba(246, 133, 27, 0.15)',
+                animation: 'pulse 3s infinite alternate'
+              }}>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" style={{ width: '70px', height: '70px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }} />
+              </div>
+              
+              <h2 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '16px', background: 'linear-gradient(to right, #FFF, #94A3B8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+                Secure Authentication
+              </h2>
+              
+              <p style={{ color: '#94A3B8', fontSize: '16px', lineHeight: '1.6', marginBottom: '40px' }}>
+                Connect your MetaMask wallet to cryptographically verify your identity and access the decentralized voting node.
+              </p>
+              
+              <button 
+                className="metamask-btn"
+                onClick={connectWallet} 
+              >
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="Fox" style={{ width: '24px', height: '24px' }} />
+                <span>Connect with MetaMask</span>
+              </button>
+              
+              <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#64748B', fontSize: '13px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }}></span>
+                End-to-end encrypted connection
+              </div>
+            </div>
           </div>
         )}
 
         {step === 'elections' && (
           <div>
-            <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 12 }}>Active Elections</h2>
-            <p style={{ color: '#94A3B8', marginBottom: 40 }}>Select an election below to view candidates and cast your vote.</p>
-            
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
-              {elections.map(el => (
-                <div key={el._id} style={{ background: '#1B2A3B', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
-                  <h3 style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 12 }}>{el.title}</h3>
-                  <p style={{ color: '#94A3B8', fontSize: 14, marginBottom: 32, lineHeight: 1.6 }}>{el.description}</p>
-                  <button 
-                    onClick={() => handleVoteNow(el)} 
-                    disabled={el.hasVoted}
-                    style={{ 
-                      width: '100%', padding: '14px', borderRadius: 8, border: 'none', fontWeight: 'bold', fontSize: 16, cursor: el.hasVoted ? 'default' : 'pointer',
-                      background: el.hasVoted ? '#334155' : '#10B981', color: el.hasVoted ? '#94A3B8' : '#000' 
-                    }}
-                  >
-                    {el.hasVoted ? '✓ Vote Cast' : 'Vote Now'}
-                  </button>
+            {!isEligible ? (
+              <div style={{ textAlign: 'center', padding: '60px 40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, border: '1px solid #EF4444' }}>
+                <div style={{ fontSize: 60, marginBottom: 24 }}>🛑</div>
+                <h2 style={{ fontSize: 28, fontWeight: 'bold', color: '#EF4444', marginBottom: 16 }}>Access Restricted</h2>
+                <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 32, lineHeight: 1.6 }}>{errorMessage}</p>
+                <Link to="/register-voter" style={{ display: 'inline-block', padding: '12px 32px', background: '#EF4444', color: '#FFF', borderRadius: 8, textDecoration: 'none', fontWeight: 'bold' }}>Register Now</Link>
+              </div>
+            ) : (
+              <>
+                <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 12 }}>Active Elections</h2>
+                <p style={{ color: '#94A3B8', marginBottom: 40 }}>Select an election below to view candidates and cast your vote.</p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+                  {elections.map(el => (
+                    <div key={el._id} style={{ background: '#1B2A3B', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
+                      <h3 style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 12 }}>{el.title}</h3>
+                      <p style={{ color: '#94A3B8', fontSize: 14, marginBottom: 32, lineHeight: 1.6 }}>{el.description}</p>
+                      <button 
+                        onClick={() => handleVoteNow(el)} 
+                        disabled={el.hasVoted}
+                        style={{ 
+                          width: '100%', padding: '14px', borderRadius: 8, border: 'none', fontWeight: 'bold', fontSize: 16, cursor: el.hasVoted ? 'default' : 'pointer',
+                          background: el.hasVoted ? '#334155' : '#10B981', color: el.hasVoted ? '#94A3B8' : '#000' 
+                        }}
+                      >
+                        {el.hasVoted ? '✓ Vote Cast' : 'Vote Now'}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         )}
 
@@ -207,11 +267,44 @@ export default function VoterPortal() {
             </div>
           </div>
         )}
+        <div style={{ height: '100px', width: '100%' }}></div>
       </main>
 
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes scaleUp { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pulse { 0% { transform: scale(1); box-shadow: 0 0 20px rgba(246, 133, 27, 0.1); } 100% { transform: scale(1.05); box-shadow: 0 0 40px rgba(246, 133, 27, 0.3); } }
+        
+        .metamask-btn {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 12px;
+          width: 100%;
+          padding: 18px 32px;
+          background: linear-gradient(135deg, #F6851B 0%, #E27625 100%);
+          color: #FFF;
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 12px;
+          font-size: 18px;
+          font-weight: 800;
+          letter-spacing: 0.5px;
+          cursor: pointer;
+          transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+          box-shadow: 0 8px 20px rgba(246, 133, 27, 0.25), inset 0 1px 0 rgba(255,255,255,0.2);
+        }
+        
+        .metamask-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 12px 25px rgba(246, 133, 27, 0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+          background: linear-gradient(135deg, #FF952B 0%, #F6851B 100%);
+        }
+        
+        .metamask-btn:active {
+          transform: translateY(1px);
+          box-shadow: 0 4px 10px rgba(246, 133, 27, 0.2);
+        }
       `}</style>
     </div>
   );

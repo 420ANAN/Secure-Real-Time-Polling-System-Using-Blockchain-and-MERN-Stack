@@ -498,7 +498,8 @@ const VoterRegistration = () => {
       ageProofType: 'Birth Certificate',
       addressProofType: 'Aadhaar Card',
       photograph: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200'
-    }
+    },
+    walletAddress: ''
   });
 
   const handleChange = (path, value) => {
@@ -631,6 +632,33 @@ const VoterRegistration = () => {
               <Field label="Email ID" path="email" formData={formData} onChange={handleChange} type="email" placeholder="john@example.com" />
             </div>
             <Field label="Aadhaar Number" path="aadhaarNumber" formData={formData} onChange={handleChange} placeholder="123456789012" />
+            <div style={{ marginBottom: 20 }}>
+              <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>Blockchain Wallet Address</label>
+              <div style={{ display: 'flex', gap: 12 }}>
+                <input 
+                  required 
+                  type="text" 
+                  placeholder="0x..." 
+                  value={formData.walletAddress}
+                  onChange={(e) => handleChange('walletAddress', e.target.value)}
+                  style={{ flex: 1, padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6, fontSize: 14, fontFamily: 'monospace' }} 
+                />
+                <button 
+                  type="button"
+                  onClick={async () => {
+                    if (window.ethereum) {
+                      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                      if (accounts[0]) handleChange('walletAddress', accounts[0]);
+                    } else {
+                      alert('MetaMask not detected');
+                    }
+                  }}
+                  style={{ padding: '0 20px', background: '#1B2A3B', color: '#10B981', border: '1px solid #10B981', borderRadius: 6, cursor: 'pointer', fontWeight: 'bold', fontSize: 12 }}
+                >
+                  Connect Wallet
+                </button>
+              </div>
+            </div>
           </Section>
           <button type="submit" disabled={loading} style={{ width: '100%', height: '56px', background: loading ? '#334155' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#0D1B2A', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px', cursor: loading ? 'not-allowed' : 'pointer' }}>
             {loading ? 'Processing...' : 'Submit'}

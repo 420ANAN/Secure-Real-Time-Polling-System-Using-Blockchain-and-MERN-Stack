@@ -114,11 +114,12 @@ export default function AdminDashboard({ onNavigate }) {
       <div style={T(197, 396, 200, 20, '#FFF', 14, 'left', true)}>Pending Voter Approvals</div>
       <div style={{ position: 'absolute', left: 197, top: 425, width: 517, height: 90, overflowY: 'auto' }}>
         <table style={{ width: '100%', color: '#FFF', fontSize: 11, borderCollapse: 'collapse' }}>
-          <thead><tr style={{ textAlign: 'left', color: '#94A3B8' }}><th>NAME</th><th>STATUS</th><th>ACTION</th></tr></thead>
+          <thead><tr style={{ textAlign: 'left', color: '#94A3B8' }}><th>NAME</th><th>WALLET</th><th>STATUS</th><th>ACTION</th></tr></thead>
           <tbody>
             {stats.recentApplications?.map(app => (
               <tr key={app._id} style={{ borderBottom: '1px solid #162032' }}>
                 <td style={{ padding: '6px 0' }}>{app.fullName}</td>
+                <td style={{ color: '#94A3B8', fontFamily: 'monospace' }}>{app.walletAddress ? `${app.walletAddress.slice(0,6)}...${app.walletAddress.slice(-4)}` : 'No Wallet'}</td>
                 <td style={{ color: app.status === 'APPROVED' ? '#10B981' : app.status === 'PENDING' ? '#F59E0B' : '#EF4444' }}>{app.status}</td>
                 <td>
                    {app.status === 'PENDING' && (

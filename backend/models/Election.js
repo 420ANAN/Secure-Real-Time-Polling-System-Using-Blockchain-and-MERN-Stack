@@ -8,7 +8,8 @@ const ElectionSchema = new mongoose.Schema({
     endTime: { type: Date },
     totalVotes: { type: Number, default: 0 },
     whitelistedAddresses: [{ type: String }],
-    emergencyStopped: { type: Boolean, default: false }
+    emergencyStopped: { type: Boolean, default: false },
+    blockchainId: { type: Number }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Election', ElectionSchema);

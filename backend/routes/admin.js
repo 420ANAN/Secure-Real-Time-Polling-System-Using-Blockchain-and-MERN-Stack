@@ -18,7 +18,7 @@ router.get('/dashboard', async (req, res) => {
         const totalVotes = await Election.aggregate([{ $group: { _id: null, sum: { $sum: '$totalVotes' } } }]);
         const elections = await Election.find().sort({ createdAt: -1 });
         const totalVoters = await VoterApplication.countDocuments({ status: 'APPROVED' });
-        const recentApplications = await VoterApplication.find().sort({ createdAt: -1 }).limit(5).select('fullName status adminRemarks createdAt');
+        const recentApplications = await VoterApplication.find().sort({ createdAt: -1 }).limit(10).select('fullName status adminRemarks walletAddress createdAt');
         
         res.json({
             totalElections,
@@ -47,7 +47,15 @@ router.get('/voters', async (req, res) => {
 router.post('/elections', async (req, res) => {
     const { title, description, startTime, endTime } = req.body;
     try {
-        const election = await Election.create({ title, description, startTime, endTime, status: 'DRAFT' });
+        const count = await Election.countDocuments();
+        const election = await Election.create({ 
+            title, 
+            description, 
+            startTime, 
+            endTime, 
+            status: 'DRAFT',
+            blockchainId: count // Map to numeric ID for smart contract
+        });
         await log('Election Created', req.ip, { electionId: election._id, title });
         req.app.get('io')?.emit('electionUpdate', election);
         res.status(201).json(election);
