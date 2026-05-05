@@ -78,7 +78,8 @@ const VoterApplicationSchema = new mongoose.Schema({
     },
     walletAddress: { type: String }, // Links the application to a blockchain wallet identity
     adminRemarks: { type: String },
-    verifiedAt: { type: Date }
+    verifiedAt: { type: Date },
+    referenceNumber: { type: String, unique: true }
 
 }, { timestamps: true });
 

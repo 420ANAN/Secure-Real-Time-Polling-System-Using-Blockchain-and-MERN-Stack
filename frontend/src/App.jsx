@@ -26,6 +26,32 @@ const PresentationSlide = ({ children }) => {
   );
 };
 
+const VoterCard = ({ card }) => (
+  <div style={{ perspective: '1000px' }}>
+    <div id="voter-card-print-area" style={{ width: 500, height: 300, background: 'linear-gradient(135deg, #1B2A3B 0%, #0D1B2A 100%)', borderRadius: 20, border: '2px solid #10B981', padding: 24, position: 'relative', overflow: 'hidden', color: '#FFF', fontFamily: 'Inter, sans-serif' }}>
+      <div style={{ position: 'absolute', right: -40, bottom: -40, fontSize: 200, opacity: 0.1, transform: 'rotate(-20deg)' }}>🇮🇳</div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: 12, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ width: 40, height: 40, background: '#10B981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>🏛️</div>
+          <div><div style={{ fontSize: 14, fontWeight: 'bold' }}>ELECTION COMMISSION</div><div style={{ fontSize: 10, color: '#10B981' }}>SECURE BLOCKCHAIN</div></div>
+        </div>
+        <div style={{ textAlign: 'right' }}><div style={{ fontSize: 10, color: '#94A3B8' }}>EPIC NO.</div><div style={{ fontSize: 18, fontWeight: 'bold', color: '#10B981' }}>{card.epicNumber}</div></div>
+      </div>
+      <div style={{ display: 'flex', gap: 24 }}>
+        <img src={card.photo} alt="P" style={{ width: 100, height: 120, borderRadius: 8, objectFit: 'cover' }} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div><label style={{ fontSize: 9, color: '#94A3B8' }}>NAME</label><div style={{ fontSize: 16, fontWeight: 'bold' }}>{card.fullName}</div></div>
+          <div style={{ display: 'flex', gap: 24 }}>
+            <div><label style={{ fontSize: 9, color: '#94A3B8' }}>GENDER</label><div>{card.gender}</div></div>
+            <div><label style={{ fontSize: 9, color: '#94A3B8' }}>DOB</label><div>{new Date(card.dob).toLocaleDateString()}</div></div>
+          </div>
+          <div><label style={{ fontSize: 9, color: '#94A3B8' }}>ADDRESS</label><div style={{ fontSize: 10 }}>{card.address}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 const Landing = () => (
   <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif' }}>
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 30 }}>
@@ -39,7 +65,7 @@ const Landing = () => (
         textShadow: '0 4px 15px rgba(0,0,0,0.8)',
         textAlign: 'center',
         pointerEvents: 'none',
-        marginTop: -30 // Lifted higher as requested
+        marginTop: -30
       }}>
         BlockVote
       </span>
@@ -56,7 +82,6 @@ const Landing = () => (
         Voter
       </Link>
     </div>
-
   </div>
 );
 
@@ -118,7 +143,7 @@ const VoterServices = () => {
     { title: 'Voter Portal', desc: 'Securely cast your vote in active elections using your blockchain wallet.', icon: '🗳️', link: '/voter' },
     { title: 'Become Voter', desc: 'Apply for voter registration and verify your eligibility for upcoming polls.', icon: '🆔', link: '/register-voter' },
     { title: 'Live Results', desc: 'View real-time election results and statistics from the blockchain.', icon: '📊', link: '/results' },
-    { title: 'Verify Vote', desc: 'Confirm that your vote was accurately recorded on the immutable ledger.', icon: '🔍', link: '/verify-vote' },
+    { title: 'Check EPIC Status', desc: 'Check your voter registration status and download your card using your reference ID.', icon: '🔍', link: '/check-status' },
     { title: 'System Status', desc: 'Check the health and security of the decentralized voting nodes.', icon: '🛡️', link: '/system-status' },
   ];
 
@@ -145,7 +170,6 @@ const VoterServices = () => {
             </div>
           ))}
         </div>
-        {/* Spacer for bottom breathing room */}
         <div style={{ height: 100 }} />
       </div>
     </div>
@@ -223,7 +247,6 @@ const SystemStatus = () => {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 40 }}>
-          {/* Node List */}
           <div style={{ background: '#1B2A3B', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
             <h3 style={{ fontSize: 20, marginBottom: 24, fontWeight: 'bold' }}>Node Health</h3>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -258,7 +281,6 @@ const SystemStatus = () => {
             </table>
           </div>
 
-          {/* Alerts & Logs */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
             <div style={{ background: '#1B2A3B', padding: 24, borderRadius: 16, border: '1px solid #EF444433' }}>
               <h3 style={{ fontSize: 18, marginBottom: 16, color: '#EF4444' }}>System Alerts</h3>
@@ -448,7 +470,6 @@ const INDIA_DATA = {
   "Tripura": ["Dhalai", "Gomati", "Khowai", "North Tripura", "Sepahijala", "South Tripura", "Unakoti", "West Tripura"],
   "Uttarakhand": ["Almora", "Bageshwar", "Chamoli", "Champawat", "Dehradun", "Haridwar", "Nainital", "Pauri Garhwal", "Pithoragarh", "Rudraprayag", "Tehri Garhwal", "Udham Singh Nagar", "Uttarkashi"],
   "Uttar Pradesh": ["Agra", "Aligarh", "Allahabad", "Ambedkar Nagar", "Amethi (Chatrapati Sahuji Mahraj Nagar)", "Amroha (J.P. Nagar)", "Auraiya", "Azamgarh", "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti", "Bhadohi", "Bijnor", "Budaun", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah", "Etawah", "Faizabad", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar", "Ghaziabad", "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur (Panchsheel Nagar)", "Hardoi", "Hathras", "Jalaun", "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj (Kanshiram Nagar)", "Kaushambi", "Kushinagar (Padrauna)", "Lakhimpur - Kheri", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri", "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh", "Raebareli", "Rampur", "Saharanpur", "Sambhal (Bheem Nagar)", "Sant Kabir Nagar", "Shahjahanpur", "Shamli (Prabuddha Nagar)", "Shravasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"],
-  "West Bengal": ["Alipurduar", "Bankura", "Birbhum", "Burdwan (Bardhaman)", "Cooch Behar", "Dakshin Dinajpur (South Dinajpur)", "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Kalimpong", "Kolkata", "Malda", "Murshidabad", "Nadia", "North 24 Parganas", "Paschim Medinipur (West Medinipur)", "Purba Medinipur (East Medinipur)", "Purulia", "South 24 Parganas", "Uttar Dinajpur (North Dinajpur)"]
 };
 
 const VoterRegistration = () => {
@@ -485,14 +506,13 @@ const VoterRegistration = () => {
     if (keys.length === 1) {
       setFormData({ ...formData, [keys[0]]: value });
     } else {
-      // Special case for state change to reset district
       if (path === 'currentAddress.state') {
         setFormData({
           ...formData,
           currentAddress: {
              ...formData.currentAddress,
              state: value,
-             district: INDIA_DATA[value][0] // Auto-select first district
+             district: INDIA_DATA[value][0]
           }
         });
       } else {
@@ -508,18 +528,15 @@ const VoterRegistration = () => {
     e.preventDefault();
     setLoading(true);
     setErrors([]);
-    
     try {
       const response = await fetch('http://localhost:5000/api/register-voter/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
       });
-      
       const result = await response.json();
-      
       if (response.ok) {
-        setSubmittedData(result.voterCard);
+        setSubmittedData(result);
       } else {
         setErrors(result.errors || [result.message]);
       }
@@ -530,127 +547,39 @@ const VoterRegistration = () => {
     }
   };
 
-
-  const VoterCard = ({ card }) => (
-    <div style={{ perspective: '1000px' }}>
-      <div style={{ 
-        width: 500, 
-        height: 300, 
-        background: 'linear-gradient(135deg, #1B2A3B 0%, #0D1B2A 100%)', 
-        borderRadius: 20, 
-        border: '2px solid #10B981', 
-        padding: 24, 
-        position: 'relative', 
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
-        overflow: 'hidden',
-        color: '#FFF',
-        fontFamily: 'Inter, sans-serif'
-      }}>
-        {/* Background Emblem */}
-        <div style={{ position: 'absolute', right: -40, bottom: -40, fontSize: 200, opacity: 0.1, transform: 'rotate(-20deg)' }}>🇮🇳</div>
-        
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: 12, marginBottom: 20 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 40, height: 40, background: '#10B981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>🏛️</div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 'bold', letterSpacing: 1 }}>ELECTION COMMISSION</div>
-              <div style={{ fontSize: 10, color: '#10B981', fontWeight: 'bold' }}>SECURE BLOCKCHAIN IDENTITY</div>
-            </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: 10, color: '#94A3B8' }}>EPIC NO.</div>
-            <div style={{ fontSize: 18, fontWeight: 'black', color: '#10B981' }}>{card.epicNumber}</div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div style={{ display: 'flex', gap: 24 }}>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-             <img src={card.photo} alt="Photo" style={{ width: 100, height: 120, borderRadius: 8, border: '2px solid #334155', objectFit: 'cover' }} />
-             <div style={{ width: 80, height: 2, background: 'rgba(255,255,255,0.2)' }} />
-             <div style={{ fontSize: 8, color: '#94A3B8' }}>SIGNATURE HASHED</div>
-          </div>
-          
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            <div>
-              <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>Full Name</label>
-              <div style={{ fontSize: 16, fontWeight: 'bold' }}>{card.fullName}</div>
-            </div>
-            <div style={{ display: 'flex', gap: 24 }}>
-              <div>
-                <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>Gender</label>
-                <div style={{ fontSize: 13 }}>{card.gender}</div>
-              </div>
-              <div>
-                <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>D.O.B</label>
-                <div style={{ fontSize: 13 }}>{new Date(card.dob).toLocaleDateString()}</div>
-              </div>
-            </div>
-            <div>
-              <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>Address</label>
-              <div style={{ fontSize: 10, color: '#CBD5E1', lineHeight: 1.4 }}>{card.address}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div style={{ position: 'absolute', bottom: 16, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-           <div style={{ fontSize: 8, color: '#475569' }}>VERIFIED BY AI AGENT v2.0 • ISSUED: {card.issueDate}</div>
-           <div style={{ display: 'flex', gap: 4 }}>
-              {[1,2,3].map(i => <div key={i} style={{ width: 12, height: 4, background: '#10B981', borderRadius: 2, opacity: 0.3 }} />)}
-           </div>
-        </div>
-      </div>
-    </div>
-  );
-
   if (submittedData) {
+    const isPending = submittedData.status === 'PENDING';
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', padding: 20 }}>
-        <div style={{ textAlign: 'center', background: '#1B2A3B', padding: 60, borderRadius: 24, border: '1px solid #10B981', maxWidth: 700, boxShadow: '0 20px 40px rgba(0,0,0,0.4)', animation: 'fadeIn 0.5s ease' }}>
-          <div style={{ fontSize: 60, marginBottom: 16 }}>✅</div>
-          <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 8 }}>Identity Verified!</h2>
-          <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 40 }}>The verification agent has successfully confirmed your details. Your digital voter card is ready.</p>
-          
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 48 }}>
-            <VoterCard card={submittedData} />
+        <div style={{ textAlign: 'center', background: '#1B2A3B', padding: 60, borderRadius: 24, border: `1px solid ${isPending ? '#F59E0B' : '#10B981'}`, maxWidth: 700, boxShadow: '0 20px 40px rgba(0,0,0,0.4)', animation: 'fadeIn 0.5s ease' }}>
+          <div style={{ fontSize: 60, marginBottom: 16 }}>{isPending ? '⏳' : '✅'}</div>
+          <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 8 }}>
+            {isPending ? 'Application Submitted!' : 'Identity Verified!'}
+          </h2>
+          <div style={{ background: 'rgba(0,0,0,0.2)', padding: '20px', borderRadius: '12px', margin: '24px 0', border: '1px solid #334155' }}>
+            <p style={{ color: '#94A3B8', fontSize: 14, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '8px' }}>Reference Number</p>
+            <p style={{ color: isPending ? '#F59E0B' : '#10B981', fontSize: 28, fontWeight: '900', fontFamily: 'monospace' }}>
+              {submittedData.referenceNumber || 'N/A'}
+            </p>
           </div>
-
+          <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 40, lineHeight: '1.6' }}>
+            {isPending 
+              ? 'Your application has been successfully submitted for review. Please save your reference number. You will be notified once the administrator approves your voter status.'
+              : 'The verification agent has successfully confirmed your details. Your digital voter card is ready.'}
+          </p>
+          {submittedData.voterCard && (
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 48 }}>
+              <VoterCard card={submittedData.voterCard} />
+            </div>
+          )}
           <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-            <button 
-              onClick={() => window.print()} 
-              style={{ 
-                padding: '16px 36px', 
-                background: 'transparent', 
-                border: '1px solid #10B981', 
-                color: '#10B981', 
-                borderRadius: 10, 
-                fontWeight: 'bold', 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; }}
-              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-            >
-              Download Card
-            </button>
-            <Link 
-              to="/voter-services" 
-              style={{ 
-                padding: '16px 36px', 
-                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
-                color: '#0D1B2A', 
-                borderRadius: 10, 
-                textDecoration: 'none', 
-                fontWeight: '900',
-                boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)',
-                transition: 'all 0.3s ease'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(16, 185, 129, 0.4)'; }}
-              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.3)'; }}
-            >
-              Proceed to Portal
+            {!isPending && (
+              <button onClick={() => window.print()} style={{ padding: '16px 36px', background: 'transparent', border: '1px solid #10B981', color: '#10B981', borderRadius: 10, fontWeight: 'bold', cursor: 'pointer' }}>
+                Download Card
+              </button>
+            )}
+            <Link to="/voter-services" style={{ padding: '16px 36px', background: `linear-gradient(135deg, ${isPending ? '#F59E0B 0%, #D97706 100%' : '#10B981 0%, #059669 100%'})`, color: '#0D1B2A', borderRadius: 10, textDecoration: 'none', fontWeight: '900', boxShadow: `0 8px 20px ${isPending ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)'}` }}>
+              {isPending ? 'Back to Services' : 'Proceed to Portal'}
             </Link>
           </div>
         </div>
@@ -663,22 +592,19 @@ const VoterRegistration = () => {
       <Link to="/voter-services" style={{ position: 'absolute', top: 40, left: 40, color: '#94A3B8', textDecoration: 'none', fontSize: 15, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 10 }}>
         <span style={{ fontSize: 24 }}>←</span> RETURN HOME
       </Link>
-
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <h1 style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 16 }}>Voter Registration Form</h1>
           <p style={{ color: '#94A3B8', fontSize: 18 }}>Please provide accurate details. Our AI Agent will verify your eligibility instantly.</p>
         </div>
-
         {errors.length > 0 && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', padding: 20, borderRadius: 12, marginBottom: 40, animation: 'shake 0.5s ease' }}>
-            <h4 style={{ color: '#EF4444', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>⚠️ Verification Errors</h4>
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', padding: 20, borderRadius: 12, marginBottom: 40 }}>
+            <h4 style={{ color: '#EF4444', marginBottom: 10 }}>⚠️ Verification Errors</h4>
             <ul style={{ margin: 0, paddingLeft: 20, color: '#FDA4AF', fontSize: 14 }}>
               {errors.map((err, i) => <li key={i}>{err}</li>)}
             </ul>
           </div>
         )}
-
         <form onSubmit={handleSubmit}>
           <Section title="Basic Personal Details" icon="👤">
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 20 }}>
@@ -687,7 +613,6 @@ const VoterRegistration = () => {
               <Field label="Date of Birth" path="dob" formData={formData} onChange={handleChange} type="date" />
             </div>
           </Section>
-
           <Section title="Current Address Details" icon="📍">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               <Field label="House No" path="currentAddress.houseNo" formData={formData} onChange={handleChange} placeholder="H-102" />
@@ -695,146 +620,95 @@ const VoterRegistration = () => {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
               <Field label="Town / Village" path="currentAddress.town" formData={formData} onChange={handleChange} placeholder="New Delhi" />
-              <Field 
-                label="State" 
-                path="currentAddress.state" 
-                formData={formData} 
-                onChange={handleChange} 
-                options={Object.keys(INDIA_DATA)} 
-              />
-              <Field 
-                label="District" 
-                path="currentAddress.district" 
-                formData={formData} 
-                onChange={handleChange} 
-                options={INDIA_DATA[formData.currentAddress.state] || []} 
-              />
+              <Field label="State" path="currentAddress.state" formData={formData} onChange={handleChange} options={Object.keys(INDIA_DATA)} />
+              <Field label="District" path="currentAddress.district" formData={formData} onChange={handleChange} options={INDIA_DATA[formData.currentAddress.state] || []} />
             </div>
             <Field label="PIN Code" path="currentAddress.pinCode" formData={formData} onChange={handleChange} placeholder="110001" />
           </Section>
-
           <Section title="Contact & Identification" icon="📱">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
               <Field label="Mobile Number" path="mobileNumber" formData={formData} onChange={handleChange} placeholder="91XXXXXXXXXX" />
               <Field label="Email ID" path="email" formData={formData} onChange={handleChange} type="email" placeholder="john@example.com" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
-              <Field label="Aadhaar Number (12 Digits)" path="aadhaarNumber" formData={formData} onChange={handleChange} placeholder="123456789012" />
-            </div>
+            <Field label="Aadhaar Number" path="aadhaarNumber" formData={formData} onChange={handleChange} placeholder="123456789012" />
           </Section>
-
-          <Section title="Citizenship Verification" icon="🛡️">
-            <Field 
-              label="Citizenship Proof Document" 
-              path="documents.citizenshipProofType" 
-              formData={formData}
-              onChange={handleChange}
-              options={['Passport', 'Birth Certificate', 'Voter ID (Previous)', 'Citizenship Certificate', 'Domicile Certificate']} 
-            />
-            <input 
-              type="file" 
-              id="citizenship-upload" 
-              style={{ display: 'none' }} 
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  handleChange('documents.citizenshipProofFile', file.name);
-                }
-              }}
-            />
-            <div 
-              onClick={() => document.getElementById('citizenship-upload').click()}
-              style={{ 
-                border: '2px dashed #334155', 
-                borderRadius: 12, 
-                padding: 30, 
-                textAlign: 'center', 
-                background: formData.documents.citizenshipProofFile ? 'rgba(16, 185, 129, 0.05)' : '#0D1B2A', 
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                borderColor: formData.documents.citizenshipProofFile ? '#10B981' : '#334155'
-              }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.background = 'rgba(16, 185, 129, 0.05)'; }}
-              onMouseLeave={e => { 
-                if (!formData.documents.citizenshipProofFile) {
-                  e.currentTarget.style.borderColor = '#334155'; 
-                  e.currentTarget.style.background = '#0D1B2A'; 
-                }
-              }}
-            >
-               <div style={{ fontSize: 24, marginBottom: 8 }}>{formData.documents.citizenshipProofFile ? '📄' : '📤'}</div>
-               <div style={{ fontSize: 14, color: '#FFF', fontWeight: 'bold', marginBottom: 4 }}>
-                 {formData.documents.citizenshipProofFile ? 'Document Selected' : `Upload ${formData.documents.citizenshipProofType}`}
-               </div>
-               <div style={{ fontSize: 12, color: '#94A3B8' }}>
-                 {formData.documents.citizenshipProofFile || 'Support: PDF, JPG, PNG (Max 5MB)'}
-               </div>
-            </div>
-          </Section>
-
-          <button 
-            type="submit" 
-            disabled={loading} 
-            style={{ 
-              width: '100%', 
-              height: '56px', 
-              background: loading ? '#334155' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
-              color: '#0D1B2A', 
-              border: 'none', 
-              borderRadius: '8px', 
-              fontSize: '15px', 
-              fontWeight: 'bold', 
-              textTransform: 'uppercase', 
-              letterSpacing: '1.5px', 
-              cursor: loading ? 'not-allowed' : 'pointer', 
-              boxShadow: loading ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.2)', 
-              transition: 'all 0.2s ease-in-out',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '10px'
-            }}
-            onMouseEnter={(e) => {
-              if(!loading) {
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.3)';
-                e.currentTarget.style.filter = 'brightness(1.05)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if(!loading) {
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.2)';
-                e.currentTarget.style.filter = 'brightness(1)';
-              }
-            }}
-          >
-            {loading ? (
-              <>
-                <div style={{ width: 18, height: 18, border: '2px solid rgba(13, 27, 42, 0.3)', borderTopColor: '#0D1B2A', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                <span>Processing...</span>
-              </>
-            ) : (
-              <span>Submit</span>
-            )}
+          <button type="submit" disabled={loading} style={{ width: '100%', height: '56px', background: loading ? '#334155' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)', color: '#0D1B2A', border: 'none', borderRadius: '8px', fontSize: '15px', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '1.5px', cursor: loading ? 'not-allowed' : 'pointer' }}>
+            {loading ? 'Processing...' : 'Submit'}
           </button>
         </form>
       </div>
-
       <style>{`
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
-        
-        /* Modern Date Picker Styling */
-        input[type="date"]::-webkit-calendar-picker-indicator {
-          filter: invert(1) brightness(0.8) sepia(100%) saturate(10000%) hue-rotate(120deg);
-          cursor: pointer;
-          opacity: 0.8;
-          transition: opacity 0.2s;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator:hover {
-          opacity: 1;
+        input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(1) brightness(0.8) sepia(100%) saturate(10000%) hue-rotate(120deg); cursor: pointer; }
+        @media print {
+          body * { visibility: hidden; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          #voter-card-print-area, #voter-card-print-area * { visibility: visible; }
+          #voter-card-print-area { position: absolute; left: 50% !important; top: 40% !important; transform: translate(-50%, -50%) scale(1.5) !important; border: 2px solid #10B981 !important; box-shadow: none !important; background: linear-gradient(135deg, #1B2A3B 0%, #0D1B2A 100%) !important; }
+          @page { margin: 0; size: landscape; }
         }
       `}</style>
+    </div>
+  );
+};
+
+const CheckStatus = () => {
+  const [ref, setRef] = React.useState('');
+  const [result, setResult] = React.useState(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState('');
+
+  const handleCheck = async (e) => {
+    e.preventDefault();
+    if (!ref) return;
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const response = await fetch(`http://localhost:5000/api/register-voter/status/${ref}`);
+      const data = await response.json();
+      if (response.ok) setResult(data);
+      else setError(data.message || 'Application not found.');
+    } catch (err) { setError('Could not connect to server.'); }
+    finally { setLoading(false); }
+  };
+
+  return (
+    <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: 20 }}>
+      <Link to="/voter-services" style={{ position: 'absolute', top: 30, left: 30, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 20 }}>←</span> RETURN SERVICES
+      </Link>
+      <div style={{ background: '#1B2A3B', padding: 40, borderRadius: 16, width: result && result.status === 'APPROVED' ? 580 : 420, border: '1px solid #334155', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+        <h2 style={{ color: '#FFFFFF', fontSize: 24, fontWeight: 'bold', marginBottom: 32, textAlign: 'center' }}>Check EPIC Status</h2>
+        <form onSubmit={handleCheck} style={{ marginBottom: 32 }}>
+          <div style={{ display: 'flex', gap: 12 }}>
+            <input type="text" value={ref} onChange={(e) => setRef(e.target.value.toUpperCase())} placeholder="REF-XXXXXX" style={{ flex: 1, padding: '12px', background: '#162032', border: '1px solid #334155', color: '#FFF', borderRadius: 6 }} />
+            <button type="submit" disabled={loading} style={{ padding: '0 24px', background: '#10B981', color: '#0D1B2A', border: 'none', borderRadius: 6, fontWeight: 'bold' }}>{loading ? '...' : 'Track'}</button>
+          </div>
+          {error && <p style={{ color: '#EF4444', fontSize: 13, marginTop: 12, textAlign: 'center' }}>{error}</p>}
+        </form>
+        {result && (
+          <div style={{ borderTop: '1px solid #334155', paddingTop: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 24 }}>
+              <span style={{ color: '#94A3B8' }}>Status</span>
+              <span style={{ color: result.status === 'APPROVED' ? '#10B981' : '#F59E0B', fontWeight: 'bold' }}>{result.status}</span>
+            </div>
+            {result.status === 'APPROVED' && result.previousVoter?.epicNumber && (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+                <VoterCard card={{
+                  fullName: result.fullName,
+                  gender: result.gender,
+                  dob: result.dob,
+                  epicNumber: result.previousVoter.epicNumber,
+                  address: `${result.currentAddress.houseNo}, ${result.currentAddress.town}`,
+                  photo: result.documents?.photograph,
+                  issueDate: result.verifiedAt || new Date()
+                }} />
+                <button onClick={() => window.print()} style={{ width: '100%', padding: '14px', background: '#10B981', color: '#0D1B2A', border: 'none', borderRadius: 8, fontWeight: 'bold' }}>Download EPIC</button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   );
 };
@@ -846,29 +720,14 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/admin" element={
-        isAdminAuthenticated ? (
-          <PresentationSlide>
-            <AdminDashboard onNavigate={setAdminPage} />
-          </PresentationSlide>
-        ) : (
-          <AdminLogin onLogin={() => setIsAdminAuthenticated(true)} />
-        )
-      } />
-      <Route path="/voter" element={
-        <PresentationSlide>
-          <VoterPortal />
-        </PresentationSlide>
-      } />
+      <Route path="/admin" element={isAdminAuthenticated ? <PresentationSlide><AdminDashboard onNavigate={setAdminPage} /></PresentationSlide> : <AdminLogin onLogin={() => setIsAdminAuthenticated(true)} />} />
+      <Route path="/voter" element={<PresentationSlide><VoterPortal /></PresentationSlide>} />
       <Route path="/voter-services" element={<VoterServices />} />
-      <Route path="/results" element={
-        <PresentationSlide>
-          <Results />
-        </PresentationSlide>
-      } />
+      <Route path="/results" element={<PresentationSlide><Results /></PresentationSlide>} />
       <Route path="/system-status" element={<SystemStatus />} />
       <Route path="/verify-vote" element={<VoteVerification />} />
       <Route path="/register-voter" element={<VoterRegistration />} />
+      <Route path="/check-status" element={<CheckStatus />} />
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

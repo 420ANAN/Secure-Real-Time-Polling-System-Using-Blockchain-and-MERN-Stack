@@ -65,17 +65,21 @@ router.post('/submit', async (req, res) => {
         const verification = await verifyApplication(applicationData);
 
         if (verification.isValid) {
+            const referenceNumber = `REF-${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
+            
             // DO NOT Auto-Approve. Save as PENDING for Admin review.
             const application = new VoterApplication({ 
                 ...applicationData, 
                 status: 'PENDING',
+                referenceNumber,
                 adminRemarks: 'Awaiting manual review by Administrator'
             });
 
             await application.save();
 
             res.status(201).json({
-                message: 'Application submitted successfully! Please wait for Admin approval.',
+                message: `Application submitted successfully! Reference Number: ${referenceNumber}. Please wait for Admin approval.`,
+                referenceNumber,
                 status: 'PENDING'
             });
         } else {
@@ -84,6 +88,19 @@ router.post('/submit', async (req, res) => {
         }
     } catch (err) {
         res.status(500).json({ message: 'Error submitting application' });
+    }
+});
+
+// GET /api/register-voter/status/:ref
+router.get('/status/:ref', async (req, res) => {
+    try {
+        const application = await VoterApplication.findOne({ referenceNumber: req.params.ref.toUpperCase() });
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found. Please check your reference number.' });
+        }
+        res.json(application);
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching status' });
     }
 });
 
