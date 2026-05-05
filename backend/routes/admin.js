@@ -3,6 +3,7 @@ const router = express.Router();
 const Election = require('../models/Election');
 const Candidate = require('../models/Candidate');
 const AuditLog = require('../models/AuditLog');
+const VoterApplication = require('../models/VoterApplication');
 
 // Helper: log action
 const log = async (action, ip, payload = {}) => {
@@ -16,12 +17,27 @@ router.get('/dashboard', async (req, res) => {
         const activeElections = await Election.countDocuments({ status: 'ACTIVE' });
         const totalVotes = await Election.aggregate([{ $group: { _id: null, sum: { $sum: '$totalVotes' } } }]);
         const elections = await Election.find().sort({ createdAt: -1 });
+        const totalVoters = await VoterApplication.countDocuments({ status: 'APPROVED' });
+        const recentApplications = await VoterApplication.find().sort({ createdAt: -1 }).limit(5).select('fullName status adminRemarks createdAt');
+        
         res.json({
             totalElections,
             activeElections,
             totalVotes: totalVotes[0]?.sum || 0,
-            elections
+            totalVoters,
+            elections,
+            recentApplications
         });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET /api/admin/voters — fetch all voter registrations
+router.get('/voters', async (req, res) => {
+    try {
+        const voters = await VoterApplication.find().sort({ createdAt: -1 });
+        res.json(voters);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -134,6 +150,37 @@ router.get('/audit', async (req, res) => {
     try {
         const logs = await AuditLog.find().sort({ createdAt: -1 }).limit(50);
         res.json(logs);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// POST /api/admin/verify-voter — manual control
+router.post('/verify-voter', async (req, res) => {
+    try {
+        const { applicationId, status, remarks } = req.body;
+        const application = await VoterApplication.findById(applicationId);
+        
+        if (!application) return res.status(404).json({ message: 'Application not found' });
+
+        application.status = status;
+        application.adminRemarks = remarks || `Manually ${status.toLowerCase()} by Admin`;
+        
+        if (status === 'APPROVED') {
+            // Logic moved from agent to manual trigger
+            const prefix = (application.currentAddress?.state || 'IND').substring(0, 3).toUpperCase();
+            const random = require('crypto').randomBytes(4).toString('hex').toUpperCase();
+            const epicNumber = `${prefix}${random}`;
+            
+            application.verifiedAt = new Date();
+            application.previousVoter = {
+                epicNumber: epicNumber,
+                constituency: application.currentAddress?.district || 'General'
+            };
+        }
+
+        await application.save();
+        res.json({ message: `Voter ${status} successfully!`, application });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

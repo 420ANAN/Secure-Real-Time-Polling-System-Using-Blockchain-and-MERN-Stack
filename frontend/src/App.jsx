@@ -379,64 +379,280 @@ const VoteVerification = () => {
   );
 };
 
+const Section = ({ title, icon, children }) => (
+  <div style={{ marginBottom: 50, background: '#162032', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
+    <h3 style={{ color: '#10B981', fontSize: 20, fontWeight: 'bold', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 12 }}>
+      <span style={{ fontSize: 24 }}>{icon}</span> {title}
+    </h3>
+    {children}
+  </div>
+);
+
+const Field = ({ label, path, formData, onChange, type = 'text', placeholder, required = true, options = null }) => (
+  <div style={{ marginBottom: 20 }}>
+    <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>{label}</label>
+    {options ? (
+      <select 
+        required={required} 
+        value={path.split('.').reduce((acc, k) => acc[k], formData)}
+        onChange={(e) => onChange(path, e.target.value)}
+        style={{ width: '100%', padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6 }}
+      >
+        {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+      </select>
+    ) : (
+      <input 
+        required={required} 
+        type={type} 
+        placeholder={placeholder} 
+        value={path.split('.').reduce((acc, k) => acc[k], formData)}
+        onChange={(e) => onChange(path, e.target.value)}
+        style={{ width: '100%', padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6, fontSize: 14 }} 
+      />
+    )}
+  </div>
+);
+
+const INDIA_DATA = {
+  "Andhra Pradesh": ["Anantapur", "Chittoor", "East Godavari", "Guntur", "Krishna", "Kurnool", "Prakasam", "Srikakulam", "Visakhapatnam", "Vizianagaram", "West Godavari", "YSR Kadapa"],
+  "Arunachal Pradesh": ["Tawang", "West Kameng", "East Kameng", "Papum Pare", "Kurung Kumey", "Kra Daadi", "Lower Subansiri", "Upper Subansiri", "West Siang", "East Siang", "Siang", "Upper Siang", "Lower Siang", "Lower Dibang Valley", "Dibang Valley", "Anjaw", "Lohit", "Namsai", "Changlang", "Tirap", "Longding"],
+  "Assam": ["Baksa", "Barpeta", "Biswanath", "Bongaigaon", "Cachar", "Charaideo", "Chirang", "Darrang", "Dhemaji", "Dhubri", "Dibrugarh", "Goalpara", "Golaghat", "Hailakandi", "Hojai", "Jorhat", "Kamrup Metropolitan", "Kamrup", "Karbi Anglong", "Karimganj", "Kokrajhar", "Lakhimpur", "Majuli", "Morigaon", "Nagaon", "Nalbari", "Dima Hasao", "Sivasagar", "Sonitpur", "South Salmara-Mankachar", "Tinsukia", "Udalguri", "West Karbi Anglong"],
+  "Bihar": ["Araria", "Arwal", "Aurangabad", "Banka", "Begusarai", "Bhagalpur", "Bhojpur", "Buxar", "Darbhanga", "East Champaran (Motihari)", "Gaya", "Gopalganj", "Jamui", "Jehanabad", "Kaimur (Bhabua)", "Katihar", "Khagaria", "Kishanganj", "Lakhisarai", "Madhepura", "Madhubani", "Munger (Monghyr)", "Muzaffarpur", "Nalanda", "Nawada", "Patna", "Purnia (Purnea)", "Rohtas", "Saharsa", "Samastipur", "Saran", "Sheikhpura", "Sheohar", "Sitamarhi", "Siwan", "Supaul", "Vaishali", "West Champaran"],
+  "Chandigarh (UT)": ["Chandigarh"],
+  "Chhattisgarh": ["Balod", "Baloda Bazar", "Balrampur", "Bastar", "Bemetara", "Bijapur", "Bilaspur", "Dantewada (South Bastar)", "Dhamtari", "Durg", "Gariyaband", "Janjgir-Champa", "Jashpur", "Kabirdham (Kawardha)", "Kondagaon", "Korba", "Korea (Koriya)", "Mahasamund", "Mungeli", "Narayanpur", "Raigarh", "Raipur", "Rajnandgaon", "Sukma", "Surajpur", "Surguja"],
+  "Dadra and Nagar Haveli and Daman and Diu (UT)": ["Dadra & Nagar Haveli", "Daman", "Diu"],
+  "Delhi (NCT)": ["Central Delhi", "East Delhi", "New Delhi", "North Delhi", "North East Delhi", "North West Delhi", "Shahdara", "South Delhi", "South East Delhi", "South West Delhi", "West Delhi"],
+  "Goa": ["North Goa", "South Goa"],
+  "Gujarat": ["Ahmedabad", "Amreli", "Anand", "Aravalli", "Banaskantha (Palanpur)", "Bharuch", "Bhavnagar", "Botad", "Chhota Udepur", "Dahod", "Dang (Ahwa)", "Devbhoomi Dwarka", "Gandhinagar", "Gir Somnath", "Jamnagar", "Junagadh", "Kachchh", "Kheda (Nadiad)", "Mahisagar", "Mehsana", "Morbi", "Narmada (Rajpipla)", "Navsari", "Panchmahal (Godhra)", "Patan", "Porbandar", "Rajkot", "Sabarkantha (Himmatnagar)", "Surat", "Surendranagar", "Tapi (Vyara)", "Vadodara", "Valsad"],
+  "Haryana": ["Ambala", "Bhiwani", "Charkhi Dadri", "Faridabad", "Fatehabad", "Gurugram (Gurgaon)", "Hisar", "Jhajjar", "Jind", "Kaithal", "Karnal", "Kurukshetra", "Mahendragarh", "Nuh", "Palwal", "Panchkula", "Panipat", "Rewari", "Rohtak", "Sirsa", "Sonipat", "Yamunanagar"],
+  "Himachal Pradesh": ["Bilaspur", "Chamba", "Hamirpur", "Kangra", "Kinnaur", "Kullu", "Lahaul & Spiti", "Mandi", "Shimla", "Sirmaur (Sirmour)", "Solan", "Una"],
+  "Jammu and Kashmir (UT)": ["Anantnag", "Bandipora", "Baramulla", "Budgam", "Doda", "Ganderbal", "Jammu", "Kathua", "Kishtwar", "Kulgam", "Kupwara", "Poonch", "Pulwama", "Rajouri", "Ramban", "Reasi", "Samba", "Shopian", "Srinagar", "Udhampur"],
+  "Jharkhand": ["Bokaro", "Chatra", "Deoghar", "Dhanbad", "Dumka", "East Singhbhum", "Garhwa", "Giridih", "Godda", "Gumla", "Hazaribag", "Jamtara", "Khunti", "Koderma", "Latehar", "Lohardaga", "Pakur", "Palamu", "Ramgarh", "Ranchi", "Sahibganj", "Seraikela-Kharsawan", "Simdega", "West Singhbhum"],
+  "Karnataka": ["Bagalkot", "Ballari (Bellary)", "Belagavi (Belgaum)", "Bengaluru (Bangalore) Rural", "Bengaluru (Bangalore) Urban", "Bidar", "Chamarajanagar", "Chikkaballapur", "Chikkamagaluru (Chikmagalur)", "Chitradurga", "Dakshina Kannada", "Davangere", "Dharwad", "Gadag", "Hassan", "Haveri", "Kalaburagi (Gulbarga)", "Kodagu", "Kolar", "Koppal", "Mandya", "Mysuru (Mysore)", "Raichur", "Ramanagara", "Shivamogga (Shimoga)", "Tumakuru (Tumkur)", "Udupi", "Uttara Kannada (Karwar)", "Vijayapura (Bijapur)", "Yadgir"],
+  "Kerala": ["Alappuzha", "Ernakulam", "Idukki", "Kannur", "Kasaragod", "Kollam", "Kottayam", "Kozhikode", "Malappuram", "Palakkad", "Pathanamthitta", "Thiruvananthapuram", "Thrissur", "Wayanad"],
+  "Ladakh (UT)": ["Kargil", "Leh"],
+  "Lakshadweep (UT)": ["Lakshadweep"],
+  "Madhya Pradesh": ["Agar Malwa", "Alirajpur", "Anuppur", "Ashoknagar", "Balaghat", "Barwani", "Betul", "Bhind", "Bhopal", "Burhanpur", "Chhatarpur", "Chhindwara", "Damoh", "Datia", "Dewas", "Dhar", "Dindori", "Guna", "Gwalior", "Harda", "Hoshangabad", "Indore", "Jabalpur", "Jhabua", "Katni", "Khandwa", "Khargone", "Mandla", "Mandsaur", "Morena", "Narsinghpur", "Neemuch", "Panna", "Raisen", "Rajgarh", "Ratlam", "Rewa", "Sagar", "Satna", "Sehore", "Seoni", "Shahdol", "Shajapur", "Sheopur", "Shivpuri", "Sidhi", "Singrauli", "Tikamgarh", "Ujjain", "Umaria", "Vidisha"],
+  "Maharashtra": ["Ahmednagar", "Akola", "Amravati", "Aurangabad", "Beed", "Bhandara", "Buldhana", "Chandrapur", "Dhule", "Gadchiroli", "Gondia", "Hingoli", "Jalgaon", "Jalna", "Kolhapur", "Latur", "Mumbai City", "Mumbai Suburban", "Nagpur", "Nanded", "Nandurbar", "Nashik", "Osmanabad", "Palghar", "Parbhani", "Pune", "Raigad", "Ratnagiri", "Sangli", "Satara", "Sindhudurg", "Solapur", "Thane", "Wardha", "Washim", "Yavatmal"],
+  "Manipur": ["Bishnupur", "Chandel", "Churachandpur", "Imphal East", "Imphal West", "Jiribam", "Kakching", "Kamjong", "Kangpokpi", "Noney", "Pherzawl", "Senapati", "Tamenglong", "Tengnoupal", "Thoubal", "Ukhrul"],
+  "Meghalaya": ["East Garo Hills", "East Jaintia Hills", "East Khasi Hills", "North Garo Hills", "Ri Bhoi", "South Garo Hills", "South West Garo Hills", "South West Khasi Hills", "West Garo Hills", "West Jaintia Hills", "West Khasi Hills"],
+  "Mizoram": ["Aizawl", "Champhai", "Kolasib", "Lawngtlai", "Lunglei", "Mamit", "Saiha", "Serchhip"],
+  "Nagaland": ["Dimapur", "Kiphire", "Kohima", "Longleng", "Mokokchung", "Mon", "Peren", "Phek", "Tuensang", "Wokha", "Zunheboto"],
+  "Odisha": ["Angul", "Balangir", "Balasore", "Bargarh", "Bhadrak", "Boudh", "Cuttack", "Deogarh", "Dhenkanal", "Gajapati", "Ganjam", "Jagatsinghpur", "Jajpur", "Jharsuguda", "Kalahandi", "Kandhamal", "Kendrapara", "Kendujhar (Keonjhar)", "Khordha", "Koraput", "Malkangiri", "Mayurbhanj", "Nabarangpur", "Nayagarh", "Nuapada", "Puri", "Rayagada", "Sambalpur", "Sonepur", "Sundargarh"],
+  "Puducherry (UT)": ["Karaikal", "Mahe", "Puducherry", "Yanam"],
+  "Punjab": ["Amritsar", "Barnala", "Bathinda", "Faridkot", "Fatehgarh Sahib", "Fazilka", "Ferozepur", "Gurdaspur", "Hoshiarpur", "Jalandhar", "Kapurthala", "Ludhiana", "Mansa", "Moga", "Muktsar", "Pathankot", "Patiala", "Rupnagar", "Sahibzada Ajit Singh Nagar (Mohali)", "Sangrur", "Shahid Bhagat Singh Nagar (Nawanshahr)", "Sri Muktsar Sahib", "Tarn Taran"],
+  "Rajasthan": ["Ajmer", "Alwar", "Banswara", "Baran", "Barmer", "Bharatpur", "Bhilwara", "Bikaner", "Bundi", "Chittorgarh", "Churu", "Dausa", "Dholpur", "Dungarpur", "Hanumangarh", "Jaipur", "Jaisalmer", "Jalore", "Jhalawar", "Jhunjhunu", "Jodhpur", "Karauli", "Kota", "Nagaur", "Pali", "Pratapgarh", "Rajsamand", "Sawai Madhopur", "Sikar", "Sirohi", "Sri Ganganagar", "Tonk", "Udaipur"],
+  "Sikkim": ["East Sikkim", "North Sikkim", "South Sikkim", "West Sikkim"],
+  "Tamil Nadu": ["Ariyalur", "Chennai", "Coimbatore", "Cuddalore", "Dharmapuri", "Dindigul", "Erode", "Kanchipuram", "Kanyakumari", "Karur", "Krishnagiri", "Madurai", "Nagapattinam", "Namakkal", "Nilgiris", "Perambalur", "Pudukkottai", "Ramanathapuram", "Salem", "Sivaganga", "Thanjavur", "Theni", "Thoothukudi (Tuticorin)", "Tiruchirappalli", "Tirunelveli", "Tiruppur", "Tiruvallur", "Tiruvannamalai", "Tiruvarur", "Vellore", "Viluppuram", "Virudhunagar"],
+  "Telangana": ["Adilabad", "Bhadradri Kothagudem", "Hyderabad", "Jagtial", "Jangaon", "Jayashankar Bhoopalpally", "Jogulamba Gadwal", "Kamareddy", "Karimnagar", "Khammam", "Kumuram Bheem Asifabad", "Mahabubabad", "Mahabubnagar", "Mancherial", "Medak", "Medchal", "Nagarkurnool", "Nalgonda", "Nirmal", "Nizamabad", "Peddapalli", "Rajanna Sircilla", "Rangareddy", "Sangareddy", "Siddipet", "Suryapet", "Vikarabad", "Wanaparthy", "Warangal (Rural)", "Warangal (Urban)", "Yadadri Bhuvanagiri"],
+  "Tripura": ["Dhalai", "Gomati", "Khowai", "North Tripura", "Sepahijala", "South Tripura", "Unakoti", "West Tripura"],
+  "Uttarakhand": ["Almora", "Bageshwar", "Chamoli", "Champawat", "Dehradun", "Haridwar", "Nainital", "Pauri Garhwal", "Pithoragarh", "Rudraprayag", "Tehri Garhwal", "Udham Singh Nagar", "Uttarkashi"],
+  "Uttar Pradesh": ["Agra", "Aligarh", "Allahabad", "Ambedkar Nagar", "Amethi (Chatrapati Sahuji Mahraj Nagar)", "Amroha (J.P. Nagar)", "Auraiya", "Azamgarh", "Baghpat", "Bahraich", "Ballia", "Balrampur", "Banda", "Barabanki", "Bareilly", "Basti", "Bhadohi", "Bijnor", "Budaun", "Bulandshahr", "Chandauli", "Chitrakoot", "Deoria", "Etah", "Etawah", "Faizabad", "Farrukhabad", "Fatehpur", "Firozabad", "Gautam Buddha Nagar", "Ghaziabad", "Ghazipur", "Gonda", "Gorakhpur", "Hamirpur", "Hapur (Panchsheel Nagar)", "Hardoi", "Hathras", "Jalaun", "Jaunpur", "Jhansi", "Kannauj", "Kanpur Dehat", "Kanpur Nagar", "Kasganj (Kanshiram Nagar)", "Kaushambi", "Kushinagar (Padrauna)", "Lakhimpur - Kheri", "Lalitpur", "Lucknow", "Maharajganj", "Mahoba", "Mainpuri", "Mathura", "Mau", "Meerut", "Mirzapur", "Moradabad", "Muzaffarnagar", "Pilibhit", "Pratapgarh", "Raebareli", "Rampur", "Saharanpur", "Sambhal (Bheem Nagar)", "Sant Kabir Nagar", "Shahjahanpur", "Shamli (Prabuddha Nagar)", "Shravasti", "Siddharthnagar", "Sitapur", "Sonbhadra", "Sultanpur", "Unnao", "Varanasi"],
+  "West Bengal": ["Alipurduar", "Bankura", "Birbhum", "Burdwan (Bardhaman)", "Cooch Behar", "Dakshin Dinajpur (South Dinajpur)", "Darjeeling", "Hooghly", "Howrah", "Jalpaiguri", "Kalimpong", "Kolkata", "Malda", "Murshidabad", "Nadia", "North 24 Parganas", "Paschim Medinipur (West Medinipur)", "Purba Medinipur (East Medinipur)", "Purulia", "South 24 Parganas", "Uttar Dinajpur (North Dinajpur)"]
+};
+
 const VoterRegistration = () => {
   const [loading, setLoading] = React.useState(false);
-  const [submitted, setSubmitted] = React.useState(false);
-  const [sameAsCurrent, setSameAsCurrent] = React.useState(false);
+  const [submittedData, setSubmittedData] = React.useState(null);
+  const [errors, setErrors] = React.useState([]);
+  const [formData, setFormData] = React.useState({
+    fullName: '',
+    gender: 'Male',
+    dob: '',
+    currentAddress: {
+      houseNo: '',
+      street: '',
+      locality: '',
+      town: '',
+      district: 'Central Delhi',
+      state: 'Delhi (NCT)',
+      pinCode: ''
+    },
+    mobileNumber: '',
+    email: '',
+    aadhaarNumber: '',
+    documents: {
+      citizenshipProofType: 'Passport',
+      citizenshipProofFile: '',
+      ageProofType: 'Birth Certificate',
+      addressProofType: 'Aadhaar Card',
+      photograph: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200'
+    }
+  });
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setSubmitted(true);
-    }, 2500);
+  const handleChange = (path, value) => {
+    const keys = path.split('.');
+    if (keys.length === 1) {
+      setFormData({ ...formData, [keys[0]]: value });
+    } else {
+      // Special case for state change to reset district
+      if (path === 'currentAddress.state') {
+        setFormData({
+          ...formData,
+          currentAddress: {
+             ...formData.currentAddress,
+             state: value,
+             district: INDIA_DATA[value][0] // Auto-select first district
+          }
+        });
+      } else {
+        setFormData({
+          ...formData,
+          [keys[0]]: { ...formData[keys[0]], [keys[1]]: value }
+        });
+      }
+    }
   };
 
-  const Section = ({ title, icon, children }) => (
-    <div style={{ marginBottom: 50, background: '#162032', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
-      <h3 style={{ color: '#10B981', fontSize: 20, fontWeight: 'bold', marginBottom: 32, display: 'flex', alignItems: 'center', gap: 12 }}>
-        <span style={{ fontSize: 24 }}>{icon}</span> {title}
-      </h3>
-      {children}
-    </div>
-  );
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setErrors([]);
+    
+    try {
+      const response = await fetch('http://localhost:5000/api/register-voter/submit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        setSubmittedData(result.voterCard);
+      } else {
+        setErrors(result.errors || [result.message]);
+      }
+    } catch (err) {
+      setErrors(['Could not connect to verification server.']);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const Field = ({ label, type = 'text', placeholder, required = true, options = null }) => (
-    <div style={{ marginBottom: 20 }}>
-      <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>{label}</label>
-      {options ? (
-        <select required={required} style={{ width: '100%', padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6 }}>
-          {options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-        </select>
-      ) : (
-        <input required={required} type={type} placeholder={placeholder} style={{ width: '100%', padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6, fontSize: 14 }} />
-      )}
-    </div>
-  );
 
-  const Upload = ({ label, types }) => (
-    <div style={{ marginBottom: 24 }}>
-      <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>{label}</label>
-      <div style={{ display: 'flex', gap: 12 }}>
-        <select style={{ flex: 1, padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6 }}>
-          {types.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <div style={{ flex: 2, border: '2px dashed #334155', borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#0D1B2A' }}>
-          <span style={{ fontSize: 12, color: '#94A3B8' }}>Click to Upload Document</span>
+  const VoterCard = ({ card }) => (
+    <div style={{ perspective: '1000px' }}>
+      <div style={{ 
+        width: 500, 
+        height: 300, 
+        background: 'linear-gradient(135deg, #1B2A3B 0%, #0D1B2A 100%)', 
+        borderRadius: 20, 
+        border: '2px solid #10B981', 
+        padding: 24, 
+        position: 'relative', 
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+        overflow: 'hidden',
+        color: '#FFF',
+        fontFamily: 'Inter, sans-serif'
+      }}>
+        {/* Background Emblem */}
+        <div style={{ position: 'absolute', right: -40, bottom: -40, fontSize: 200, opacity: 0.1, transform: 'rotate(-20deg)' }}>🇮🇳</div>
+        
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: 12, marginBottom: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <div style={{ width: 40, height: 40, background: '#10B981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>🏛️</div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 'bold', letterSpacing: 1 }}>ELECTION COMMISSION</div>
+              <div style={{ fontSize: 10, color: '#10B981', fontWeight: 'bold' }}>SECURE BLOCKCHAIN IDENTITY</div>
+            </div>
+          </div>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ fontSize: 10, color: '#94A3B8' }}>EPIC NO.</div>
+            <div style={{ fontSize: 18, fontWeight: 'black', color: '#10B981' }}>{card.epicNumber}</div>
+          </div>
+        </div>
+
+        {/* Content */}
+        <div style={{ display: 'flex', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+             <img src={card.photo} alt="Photo" style={{ width: 100, height: 120, borderRadius: 8, border: '2px solid #334155', objectFit: 'cover' }} />
+             <div style={{ width: 80, height: 2, background: 'rgba(255,255,255,0.2)' }} />
+             <div style={{ fontSize: 8, color: '#94A3B8' }}>SIGNATURE HASHED</div>
+          </div>
+          
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div>
+              <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>Full Name</label>
+              <div style={{ fontSize: 16, fontWeight: 'bold' }}>{card.fullName}</div>
+            </div>
+            <div style={{ display: 'flex', gap: 24 }}>
+              <div>
+                <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>Gender</label>
+                <div style={{ fontSize: 13 }}>{card.gender}</div>
+              </div>
+              <div>
+                <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>D.O.B</label>
+                <div style={{ fontSize: 13 }}>{new Date(card.dob).toLocaleDateString()}</div>
+              </div>
+            </div>
+            <div>
+              <label style={{ fontSize: 9, color: '#94A3B8', textTransform: 'uppercase' }}>Address</label>
+              <div style={{ fontSize: 10, color: '#CBD5E1', lineHeight: 1.4 }}>{card.address}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={{ position: 'absolute', bottom: 16, left: 24, right: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+           <div style={{ fontSize: 8, color: '#475569' }}>VERIFIED BY AI AGENT v2.0 • ISSUED: {card.issueDate}</div>
+           <div style={{ display: 'flex', gap: 4 }}>
+              {[1,2,3].map(i => <div key={i} style={{ width: 12, height: 4, background: '#10B981', borderRadius: 2, opacity: 0.3 }} />)}
+           </div>
         </div>
       </div>
     </div>
   );
 
-  if (submitted) {
+  if (submittedData) {
     return (
       <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', padding: 20 }}>
-        <div style={{ textAlign: 'center', background: '#1B2A3B', padding: 60, borderRadius: 24, border: '1px solid #10B981', maxWidth: 600, boxShadow: '0 20px 40px rgba(0,0,0,0.4)' }}>
-          <div style={{ fontSize: 100, marginBottom: 24 }}>🏛️</div>
-          <h2 style={{ fontSize: 36, fontWeight: 'bold', marginBottom: 16 }}>Application Received</h2>
-          <p style={{ color: '#94A3B8', fontSize: 18, marginBottom: 40, lineHeight: 1.6 }}>Your voter registration has been submitted to the decentralized network for verification. Your unique Voter ID will be generated upon confirmation.</p>
-          <Link to="/voter-services" style={{ padding: '16px 48px', background: '#10B981', color: '#000', borderRadius: 12, textDecoration: 'none', fontWeight: 'bold', fontSize: 18 }}>Return to Services</Link>
+        <div style={{ textAlign: 'center', background: '#1B2A3B', padding: 60, borderRadius: 24, border: '1px solid #10B981', maxWidth: 700, boxShadow: '0 20px 40px rgba(0,0,0,0.4)', animation: 'fadeIn 0.5s ease' }}>
+          <div style={{ fontSize: 60, marginBottom: 16 }}>✅</div>
+          <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 8 }}>Identity Verified!</h2>
+          <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 40 }}>The verification agent has successfully confirmed your details. Your digital voter card is ready.</p>
+          
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 48 }}>
+            <VoterCard card={submittedData} />
+          </div>
+
+          <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
+            <button 
+              onClick={() => window.print()} 
+              style={{ 
+                padding: '16px 36px', 
+                background: 'transparent', 
+                border: '1px solid #10B981', 
+                color: '#10B981', 
+                borderRadius: 10, 
+                fontWeight: 'bold', 
+                cursor: 'pointer',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)'; }}
+              onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            >
+              Download Card
+            </button>
+            <Link 
+              to="/voter-services" 
+              style={{ 
+                padding: '16px 36px', 
+                background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
+                color: '#0D1B2A', 
+                borderRadius: 10, 
+                textDecoration: 'none', 
+                fontWeight: '900',
+                boxShadow: '0 8px 20px rgba(16, 185, 129, 0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(16, 185, 129, 0.4)'; }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(16, 185, 129, 0.3)'; }}
+            >
+              Proceed to Portal
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -451,127 +667,173 @@ const VoterRegistration = () => {
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
           <h1 style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 16 }}>Voter Registration Form</h1>
-          <p style={{ color: '#94A3B8', fontSize: 18 }}>Please provide accurate details to register your identity on the secure voting ledger.</p>
+          <p style={{ color: '#94A3B8', fontSize: 18 }}>Please provide accurate details. Our AI Agent will verify your eligibility instantly.</p>
         </div>
+
+        {errors.length > 0 && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', border: '1px solid #EF4444', padding: 20, borderRadius: 12, marginBottom: 40, animation: 'shake 0.5s ease' }}>
+            <h4 style={{ color: '#EF4444', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>⚠️ Verification Errors</h4>
+            <ul style={{ margin: 0, paddingLeft: 20, color: '#FDA4AF', fontSize: 14 }}>
+              {errors.map((err, i) => <li key={i}>{err}</li>)}
+            </ul>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit}>
           <Section title="Basic Personal Details" icon="👤">
             <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 20 }}>
-              <Field label="Full Name (First, Middle, Last)" placeholder="John Quincy Doe" />
-              <Field label="Gender" options={['Male', 'Female', 'Other']} />
-              <Field label="Date of Birth" type="date" />
-            </div>
-            <Field label="Place of Birth" placeholder="City, State, Country" />
-          </Section>
-
-          <Section title="Family Details" icon="👪">
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
-              <Field label="Relative's Name (Father/Mother/Husband)" placeholder="Jane Doe" />
-              <Field label="Relationship Type" options={['Father', 'Mother', 'Husband', 'Guardian']} />
+              <Field label="Full Name" path="fullName" formData={formData} onChange={handleChange} placeholder="John Quincy Doe" />
+              <Field label="Gender" path="gender" formData={formData} onChange={handleChange} options={['Male', 'Female', 'Other']} />
+              <Field label="Date of Birth" path="dob" formData={formData} onChange={handleChange} type="date" />
             </div>
           </Section>
 
           <Section title="Current Address Details" icon="📍">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <Field label="House No / Building" placeholder="H-102" />
-              <Field label="Street / Area / Locality" placeholder="Green Valley" />
+              <Field label="House No" path="currentAddress.houseNo" formData={formData} onChange={handleChange} placeholder="H-102" />
+              <Field label="Street" path="currentAddress.street" formData={formData} onChange={handleChange} placeholder="Green Valley" />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
-              <Field label="Town / Village" placeholder="New Delhi" />
-              <Field label="District" placeholder="South Delhi" />
-              <Field label="State" placeholder="Delhi" />
+              <Field label="Town / Village" path="currentAddress.town" formData={formData} onChange={handleChange} placeholder="New Delhi" />
+              <Field 
+                label="State" 
+                path="currentAddress.state" 
+                formData={formData} 
+                onChange={handleChange} 
+                options={Object.keys(INDIA_DATA)} 
+              />
+              <Field 
+                label="District" 
+                path="currentAddress.district" 
+                formData={formData} 
+                onChange={handleChange} 
+                options={INDIA_DATA[formData.currentAddress.state] || []} 
+              />
             </div>
-            <Field label="PIN Code" placeholder="110001" />
-          </Section>
-
-          <Section title="Permanent Address" icon="🏠">
-            <div style={{ marginBottom: 20, display: 'flex', alignItems: 'center', gap: 10 }}>
-              <input type="checkbox" onChange={e => setSameAsCurrent(e.target.checked)} />
-              <label style={{ fontSize: 14, color: '#94A3B8' }}>Same as Current Address</label>
-            </div>
-            {!sameAsCurrent && (
-              <div style={{ animation: 'fadeIn 0.3s ease' }}>
-                <Field label="Full Permanent Address" placeholder="Enter complete address" />
-              </div>
-            )}
+            <Field label="PIN Code" path="currentAddress.pinCode" formData={formData} onChange={handleChange} placeholder="110001" />
           </Section>
 
           <Section title="Contact & Identification" icon="📱">
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <Field label="Mobile Number" placeholder="+91 XXXXX XXXXX" />
-              <Field label="Email ID" type="email" placeholder="john@example.com" required={false} />
+              <Field label="Mobile Number" path="mobileNumber" formData={formData} onChange={handleChange} placeholder="91XXXXXXXXXX" />
+              <Field label="Email ID" path="email" formData={formData} onChange={handleChange} type="email" placeholder="john@example.com" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <Field label="Aadhaar Number" placeholder="XXXX XXXX XXXX" required={false} />
-              <Field label="Other ID Type" options={['Passport', 'PAN', 'Driving License', 'Ration Card']} />
-            </div>
-          </Section>
-
-          <Section title="Document Uploads" icon="📁">
-            <Upload label="Age Proof" types={['Birth Certificate', '10th Marksheet', 'Passport', 'Aadhaar']} />
-            <Upload label="Address Proof" types={['Aadhaar Card', 'Electricity Bill', 'Rent Agreement', 'Bank Passbook']} />
-            <div style={{ marginTop: 30 }}>
-              <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 12, textTransform: 'uppercase' }}>Passport Size Photograph</label>
-              <div style={{ width: 120, height: 150, border: '2px dashed #334155', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#0D1B2A' }}>
-                <span style={{ fontSize: 10, textAlign: 'center', color: '#94A3B8' }}>Upload Photo</span>
-              </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 20 }}>
+              <Field label="Aadhaar Number (12 Digits)" path="aadhaarNumber" formData={formData} onChange={handleChange} placeholder="123456789012" />
             </div>
           </Section>
 
-          <Section title="Previous Voter Details (If Shifting)" icon="🔄">
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-              <Field label="Previous EPIC Number" placeholder="ABC1234567" required={false} />
-              <Field label="Previous Constituency" placeholder="District 12" required={false} />
+          <Section title="Citizenship Verification" icon="🛡️">
+            <Field 
+              label="Citizenship Proof Document" 
+              path="documents.citizenshipProofType" 
+              formData={formData}
+              onChange={handleChange}
+              options={['Passport', 'Birth Certificate', 'Voter ID (Previous)', 'Citizenship Certificate', 'Domicile Certificate']} 
+            />
+            <input 
+              type="file" 
+              id="citizenship-upload" 
+              style={{ display: 'none' }} 
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  handleChange('documents.citizenshipProofFile', file.name);
+                }
+              }}
+            />
+            <div 
+              onClick={() => document.getElementById('citizenship-upload').click()}
+              style={{ 
+                border: '2px dashed #334155', 
+                borderRadius: 12, 
+                padding: 30, 
+                textAlign: 'center', 
+                background: formData.documents.citizenshipProofFile ? 'rgba(16, 185, 129, 0.05)' : '#0D1B2A', 
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                borderColor: formData.documents.citizenshipProofFile ? '#10B981' : '#334155'
+              }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.background = 'rgba(16, 185, 129, 0.05)'; }}
+              onMouseLeave={e => { 
+                if (!formData.documents.citizenshipProofFile) {
+                  e.currentTarget.style.borderColor = '#334155'; 
+                  e.currentTarget.style.background = '#0D1B2A'; 
+                }
+              }}
+            >
+               <div style={{ fontSize: 24, marginBottom: 8 }}>{formData.documents.citizenshipProofFile ? '📄' : '📤'}</div>
+               <div style={{ fontSize: 14, color: '#FFF', fontWeight: 'bold', marginBottom: 4 }}>
+                 {formData.documents.citizenshipProofFile ? 'Document Selected' : `Upload ${formData.documents.citizenshipProofType}`}
+               </div>
+               <div style={{ fontSize: 12, color: '#94A3B8' }}>
+                 {formData.documents.citizenshipProofFile || 'Support: PDF, JPG, PNG (Max 5MB)'}
+               </div>
             </div>
           </Section>
 
-          <Section title="Declaration & Special Categories" icon="✍️">
-             <div style={{ marginBottom: 30, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>
-                <div style={{ background: '#0D1B2A', padding: 16, borderRadius: 8, border: '1px solid #334155' }}>
-                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                      <input type="checkbox" /> <span style={{ fontSize: 12 }}>Disability (PwD)</span>
-                   </label>
-                </div>
-                <div style={{ background: '#0D1B2A', padding: 16, borderRadius: 8, border: '1px solid #334155' }}>
-                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                      <input type="checkbox" /> <span style={{ fontSize: 12 }}>Overseas Voter (NRI)</span>
-                   </label>
-                </div>
-                <div style={{ background: '#0D1B2A', padding: 16, borderRadius: 8, border: '1px solid #334155' }}>
-                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, cursor: 'pointer' }}>
-                      <input type="checkbox" /> <span style={{ fontSize: 12 }}>Service Voter</span>
-                   </label>
-                </div>
-             </div>
-
-             <div style={{ padding: 24, background: '#1B2A3B', border: '1px solid #10B981', borderRadius: 12, marginBottom: 32 }}>
-                <h4 style={{ color: '#10B981', marginBottom: 12, fontSize: 16 }}>Declaration</h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#94A3B8' }}>
-                      <input required type="checkbox" /> I confirm that I am an Indian Citizen.
-                   </label>
-                   <label style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13, color: '#94A3B8' }}>
-                      <input required type="checkbox" /> I confirm that I am not registered as a voter in any other constituency.
-                   </label>
-                </div>
-             </div>
-
-             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
-                <Field label="Place of Declaration" placeholder="Current City" />
-                <div style={{ border: '1px solid #334155', height: 60, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0D1B2A' }}>
-                   <span style={{ fontSize: 11, color: '#334155' }}>Digital Signature Area</span>
-                </div>
-             </div>
-          </Section>
-
-          <button type="submit" disabled={loading} style={{ width: '100%', padding: '24px', background: '#10B981', color: '#000', border: 'none', borderRadius: 16, fontSize: 20, fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 10px 30px rgba(16, 185, 129, 0.3)' }}>
-            {loading ? 'Processing Application...' : 'Submit Final Application'}
+          <button 
+            type="submit" 
+            disabled={loading} 
+            style={{ 
+              width: '100%', 
+              height: '56px', 
+              background: loading ? '#334155' : 'linear-gradient(135deg, #10B981 0%, #059669 100%)', 
+              color: '#0D1B2A', 
+              border: 'none', 
+              borderRadius: '8px', 
+              fontSize: '15px', 
+              fontWeight: 'bold', 
+              textTransform: 'uppercase', 
+              letterSpacing: '1.5px', 
+              cursor: loading ? 'not-allowed' : 'pointer', 
+              boxShadow: loading ? 'none' : '0 4px 12px rgba(16, 185, 129, 0.2)', 
+              transition: 'all 0.2s ease-in-out',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '10px'
+            }}
+            onMouseEnter={(e) => {
+              if(!loading) {
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(16, 185, 129, 0.3)';
+                e.currentTarget.style.filter = 'brightness(1.05)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if(!loading) {
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(16, 185, 129, 0.2)';
+                e.currentTarget.style.filter = 'brightness(1)';
+              }
+            }}
+          >
+            {loading ? (
+              <>
+                <div style={{ width: 18, height: 18, border: '2px solid rgba(13, 27, 42, 0.3)', borderTopColor: '#0D1B2A', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                <span>Processing...</span>
+              </>
+            ) : (
+              <span>Submit</span>
+            )}
           </button>
         </form>
       </div>
 
       <style>{`
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        /* Modern Date Picker Styling */
+        input[type="date"]::-webkit-calendar-picker-indicator {
+          filter: invert(1) brightness(0.8) sepia(100%) saturate(10000%) hue-rotate(120deg);
+          cursor: pointer;
+          opacity: 0.8;
+          transition: opacity 0.2s;
+        }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover {
+          opacity: 1;
+        }
       `}</style>
     </div>
   );

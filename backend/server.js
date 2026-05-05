@@ -34,6 +34,7 @@ mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/votesecure'
 app.use('/api/admin', require('./routes/admin'));
 app.use('/api/voter', require('./routes/voter'));
 app.use('/api/polls', require('./routes/polls'));  // legacy
+app.use('/api/register-voter', require('./routes/voterRegistration'));
 
 app.get('/', (req, res) => {
     res.json({ status: 'VoteSecure API running', version: '2.0' });
