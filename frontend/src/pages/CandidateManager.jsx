@@ -16,7 +16,9 @@ export default function CandidateManager() {
             if (res.data.elections.length > 0 && !selectedElection) {
                 setSelectedElection(res.data.elections[0]._id);
             }
-        } catch (e) { }
+        } catch (err) {
+            console.error('Operation failed', err);
+        }
     };
 
     const loadCandidates = async (id) => {
@@ -25,7 +27,9 @@ export default function CandidateManager() {
         try {
             const res = await voterAPI.getCandidates(id);
             setCandidates(res.data);
-        } catch (e) { }
+        } catch (err) {
+            console.error('Operation failed', err);
+        }
         setLoading(false);
     };
 

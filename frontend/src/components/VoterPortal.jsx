@@ -333,6 +333,7 @@ export default function VoterPortal({ voterUser }) {
                 </div>
               </div>
 
+              <div style={{ marginTop: 40, borderTop: '1px solid #334155', paddingTop: 32 }}>
                 <h4 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>Voter Identification</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>

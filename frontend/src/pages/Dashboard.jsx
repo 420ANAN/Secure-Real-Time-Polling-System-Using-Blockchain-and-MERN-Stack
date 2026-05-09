@@ -5,7 +5,6 @@ import PollList from "../components/PollList";
 
 export default function Dashboard() {
   const { account, connectWallet } = useContext(WalletContext);
-  const navigate = useNavigate();
 
   return (
     <div className="container mt-4">

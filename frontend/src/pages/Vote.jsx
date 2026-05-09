@@ -3,7 +3,7 @@ import axios from 'axios';
 import { WalletContext } from '../context/WalletContext';
 
 const Vote = () => {
-  const { contract, account } = useContext(WalletContext);
+  const { contract } = useContext(WalletContext);
   const [polls, setPolls] = useState([]);
   const [selectedPoll, setSelectedPoll] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);

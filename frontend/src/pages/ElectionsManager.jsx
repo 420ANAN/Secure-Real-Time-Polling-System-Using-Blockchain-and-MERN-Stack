@@ -17,7 +17,6 @@ const STATUS_OPTIONS = [
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt = (d) => d ? new Date(d).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }) : '—';
-const totalVotesSum = (elections) => elections.reduce((s, e) => s + (e.totalVotes || 0), 0);
 
 // ─── Status Badge ─────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {

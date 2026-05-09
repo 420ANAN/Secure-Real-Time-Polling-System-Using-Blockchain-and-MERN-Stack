@@ -7,14 +7,13 @@ const Results = () => {
   const [items, setItems] = useState([]);
   const { contract } = useContext(WalletContext);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     try {
       const [pollsRes, electionsRes] = await Promise.all([
         axios.get('http://localhost:5000/api/polls'),
         axios.get('http://localhost:5000/api/voter/public-results')
       ]);
 
-      // Normalize both into a single format
       const normalizedPolls = pollsRes.data.map(p => ({
         id: p._id,
         title: p.question,
@@ -37,13 +36,13 @@ const Results = () => {
     } catch (error) {
       console.error("Error fetching data:", error);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchData();
     const interval = setInterval(fetchData, 10000);
     return () => clearInterval(interval);
-  }, []);
+  }, [fetchData]);
 
   useEffect(() => {
     if (!contract || items.length === 0) return;
@@ -80,7 +79,7 @@ const Results = () => {
     updateCounts();
     const interval = setInterval(updateCounts, 10000);
     return () => clearInterval(interval);
-  }, [contract, items.length]);
+  }, [contract, items]);
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', position: 'relative', color: '#FFF' }}>
