@@ -11,6 +11,9 @@ const { Server } = require('socket.io');
 const app = express();
 const server = http.createServer(app);
 
+
+
+
 // Socket.io setup
 const io = new Server(server, {
     cors: { origin: '*', methods: ['GET', 'POST'] }
@@ -25,7 +28,13 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors({ origin: '*' }));
+app.use(cors({
+    origin: [
+        "http://localhost:5173",
+        "http://secure-real-time-polling-system-usi-beta.vercel.app"
+    ],
+    credentials: true
+}));
 app.use(express.json());
 
 // Database Connection
