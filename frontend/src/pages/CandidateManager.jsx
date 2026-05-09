@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI, voterAPI } from '../api';
+import API_BASE_URL from '../apiConfig';
 
 export default function CandidateManager() {
     const [elections, setElections] = useState([]);
@@ -44,7 +45,7 @@ export default function CandidateManager() {
     const handleAdd = async () => {
         if (!form.name || !selectedElection) return;
         try {
-            const res = await fetch(`http://localhost:5000/api/admin/elections/${selectedElection}/candidates`, {
+            const res = await fetch(`${API_BASE_URL}/admin/elections/${selectedElection}/candidates`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(form)

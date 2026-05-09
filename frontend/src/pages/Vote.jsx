@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { WalletContext } from '../context/WalletContext';
+import API_BASE_URL from '../apiConfig';
 
 const Vote = () => {
   const { contract } = useContext(WalletContext);
@@ -12,7 +13,7 @@ const Vote = () => {
   useEffect(() => {
     const fetchPolls = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/polls');
+        const res = await axios.get(`${API_BASE_URL}/polls`);
         setPolls(res.data);
       } catch (error) {
         console.error("Error fetching polls:", error);
@@ -41,7 +42,7 @@ const Vote = () => {
       await tx.wait(); // Wait for transaction to be mined
 
       // Update backend
-      await axios.post(`http://localhost:5000/api/polls/${selectedPoll._id}/vote`, { optionIndex: selectedOption });
+      await axios.post(`${API_BASE_URL}/polls/${selectedPoll._id}/vote`, { optionIndex: selectedOption });
 
       alert("Vote submitted successfully!");
       setSelectedOption(null); // Reset selection

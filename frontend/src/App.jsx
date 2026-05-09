@@ -9,6 +9,7 @@ import CandidateManager from './pages/CandidateManager';
 
 import { adminAPI } from './api';
 import { WalletContext } from './context/WalletContext';
+import API_BASE_URL from './apiConfig';
 
 // PresentationSlide was removed to support true responsiveness.
 
@@ -129,7 +130,8 @@ const VoterServices = () => {
   React.useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/voter/stats/undefined');
+        // Use global stats if no account is connected
+        const res = await fetch(`${API_BASE_URL}/voter/stats/undefined`);
         const data = await res.json();
         setActiveCount(data.available || 0);
       } catch (err) {
@@ -537,7 +539,7 @@ const VoterRegistration = () => {
     setLoading(true);
     setErrors([]);
     try {
-      const response = await fetch('http://localhost:5000/api/register-voter/submit', {
+      const response = await fetch(`${API_BASE_URL}/register-voter/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -699,7 +701,7 @@ const CheckStatus = () => {
     setError('');
     setResult(null);
     try {
-      const response = await fetch(`http://localhost:5000/api/register-voter/status/${ref}`);
+      const response = await fetch(`${API_BASE_URL}/register-voter/status/${ref}`);
       const data = await response.json();
       if (response.ok) setResult(data);
       else setError(data.message || 'Application not found.');

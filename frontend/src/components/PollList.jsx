@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { WalletContext } from '../context/WalletContext';
+import API_BASE_URL from '../apiConfig';
 
 const PollList = () => {
     const [polls, setPolls] = useState([]);
@@ -9,7 +10,7 @@ const PollList = () => {
     useEffect(() => {
         const fetchPolls = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/polls');
+                const res = await axios.get(`${API_BASE_URL}/polls`);
                 setPolls(res.data);
             } catch (error) {
                 console.error("Error fetching polls:", error);

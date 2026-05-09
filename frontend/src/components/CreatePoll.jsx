@@ -2,6 +2,7 @@ import React, { useState, useContext } from 'react';
 import { WalletContext } from '../context/WalletContext';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import API_BASE_URL from '../apiConfig';
 // import { getContract } from '../utils/contract'; // Helper to get contract instance
 
 const CreatePoll = () => {
@@ -68,7 +69,7 @@ const CreatePoll = () => {
             }
 
             // 3. Save to Backend
-            await axios.post('http://localhost:5000/api/polls', {
+            await axios.post(`${API_BASE_URL}/polls`, {
                 question,
                 options: validOptions,
                 creator: account,

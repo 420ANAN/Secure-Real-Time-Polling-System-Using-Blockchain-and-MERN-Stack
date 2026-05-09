@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { adminAPI } from '../api';
+import API_BASE_URL from '../apiConfig';
 
 export default function AdminDashboard({ onNavigate }) {
   const [stats, setStats] = useState({ totalElections: 0, activeElections: 0, totalVotes: 0, totalVoters: 0, elections: [], recentApplications: [] });
@@ -46,7 +47,7 @@ export default function AdminDashboard({ onNavigate }) {
 
   const handleVerify = async (id, status) => {
     try {
-      const res = await fetch('http://localhost:5000/api/admin/verify-voter', {
+      const res = await fetch(`${API_BASE_URL}/admin/verify-voter`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ applicationId: id, status })

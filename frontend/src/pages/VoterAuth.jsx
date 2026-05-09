@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import API_BASE_URL from '../apiConfig';
 
-const API = (import.meta.env.VITE_API_URL || 'http://localhost:5000/api') + '/voter-auth';
+const API = API_BASE_URL + '/voter-auth';
 
 // ── Input Field ──────────────────────────────────────────────────────────────
 function Field({ label, id, type = 'text', value, onChange, placeholder }) {

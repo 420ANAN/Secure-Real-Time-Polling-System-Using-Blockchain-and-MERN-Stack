@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { WalletContext } from '../context/WalletContext';
+import API_BASE_URL from '../apiConfig';
 
 const Results = () => {
   const [items, setItems] = useState([]);
@@ -10,8 +11,8 @@ const Results = () => {
   const fetchData = React.useCallback(async () => {
     try {
       const [pollsRes, electionsRes] = await Promise.all([
-        axios.get('http://localhost:5000/api/polls'),
-        axios.get('http://localhost:5000/api/voter/public-results')
+        axios.get(`${API_BASE_URL}/polls`),
+        axios.get(`${API_BASE_URL}/voter/public-results`)
       ]);
 
       const normalizedPolls = pollsRes.data.map(p => ({
