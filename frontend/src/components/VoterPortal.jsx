@@ -3,34 +3,66 @@ import { Link, useNavigate } from 'react-router-dom';
 import { WalletContext } from '../context/WalletContext';
 import { voterAPI } from '../api';
 
-export default function VoterPortal() {
+export default function VoterPortal({ voterUser }) {
   const { account, connectWallet, contract } = useContext(WalletContext);
-  const [step, setStep] = useState('connect'); // connect | elections | candidates | status
+  const [step, setStep] = useState('elections'); // 'elections' | 'profile' | 'connect' | 'candidates' | 'status'
   const [elections, setElections] = useState([]);
   const [selectedElection, setSelectedElection] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const [selectedCandidate, setSelectedCandidate] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [txStatus, setTxStatus] = useState(null); // { success: bool, hash: string, error: string }
+  const [txStatus, setTxStatus] = useState(null);
   const [voterStats, setVoterStats] = useState({ available: 0, voted: 0 });
   const [isEligible, setIsEligible] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
 
+  // Load elections and check registration status
   useEffect(() => {
-    if (account) {
-      setStep('elections');
-      loadElections();
-    } else {
-      setStep('connect');
+    if (voterUser?.email) {
+      checkRegistrationStatus(voterUser.email);
     }
-  }, [account]);
+    loadElections();
+  }, [account, voterUser]);
+
+  const checkRegistrationStatus = async (email) => {
+    try {
+      const res = await voterAPI.getRegistrationStatus(email);
+      const app = res.data;
+      
+      // Eligibility rule: Approved + has Voter ID (EPIC)
+      const hasEPIC = app.previousVoter?.epicNumber || app.epicNumber; 
+      
+      if (app.status === 'APPROVED' && hasEPIC) {
+        setIsEligible(true);
+        setVoterStats(prev => ({ ...prev, epicNumber: hasEPIC }));
+      } else {
+        setIsEligible(false);
+        setErrorMessage(app.status === 'PENDING' 
+          ? 'Your voter registration is currently PENDING. Please wait for Admin approval and Voter ID issuance.' 
+          : 'You do not have a valid Voter ID issued. Please register to become eligible.');
+      }
+    } catch (err) {
+      console.error('Registration check failed', err);
+      setIsEligible(false);
+      setErrorMessage('No voter registration record found for your account. Please apply for a Voter ID to participate in elections.');
+    }
+  };
+
+  // If user connects wallet while on the 'connect' step, proceed to candidates
+  useEffect(() => {
+    if (account && step === 'connect' && selectedElection) {
+      proceedToCandidates(selectedElection);
+    }
+  }, [account, step, selectedElection]);
 
   const loadElections = async () => {
     try {
-      const res = await voterAPI.getElections(account);
+      const res = await voterAPI.getElections(account || 'undefined');
       setElections(res.data);
-      const statsRes = await voterAPI.getStats(account);
-      setVoterStats(statsRes.data);
+      if (account) {
+        const statsRes = await voterAPI.getStats(account);
+        setVoterStats(statsRes.data);
+      }
       setIsEligible(true);
     } catch (err) {
       console.error('Failed to load elections', err);
@@ -49,6 +81,14 @@ export default function VoterPortal() {
 
   const handleVoteNow = async (election) => {
     setSelectedElection(election);
+    if (!account) {
+      setStep('connect');
+    } else {
+      proceedToCandidates(election);
+    }
+  };
+
+  const proceedToCandidates = async (election) => {
     setLoading(true);
     try {
       const res = await voterAPI.getCandidates(election._id);
@@ -77,11 +117,13 @@ export default function VoterPortal() {
         const optionIndex = candidates.findIndex(c => c._id === selectedCandidate._id);
         const pollId = selectedElection.blockchainId || 0; 
         const tx = await contract.vote(pollId, Math.max(0, optionIndex));
+        if (tx.wait) await tx.wait();
         txHash = tx.hash;
       }
       
       await voterAPI.castVote({
-        voterAddress: account,
+        voterId: voterUser?.id || 'unknown',
+        walletAddress: account,
         electionId: selectedElection._id,
         candidateId: selectedCandidate._id,
         transactionHash: txHash
@@ -99,24 +141,42 @@ export default function VoterPortal() {
   };
 
   return (
-    <div style={{ height: '100%', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', color: '#FFF', position: 'relative', overflowY: 'auto' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', color: '#FFF', position: 'relative', overflowY: 'auto' }}>
       
       {/* Header */}
-      <header style={{ height: 80, background: '#1B2A3B', borderBottom: '3px solid #10B981', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 40px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-           <Link to="/voter-services" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 13, fontWeight: 'bold' }}>← RETURN HOME</Link>
-           <img src="/image-1-1.png" alt="logo" style={{ width: 30, height: 30, marginLeft: 20 }} />
-           <span style={{ fontSize: 20, fontWeight: 'bold' }}>BlockVote Voter Portal</span>
+      <header style={{ minHeight: 80, background: '#1B2A3B', borderBottom: '3px solid #10B981', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 20px', flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+           <Link to="/voter-services" style={{ color: '#94A3B8', textDecoration: 'none', fontSize: 13, fontWeight: 'bold' }}>← <span className="hidden sm:inline">RETURN</span></Link>
+           <img src="/image-1-1.png" alt="logo" style={{ width: 30, height: 30 }} />
+           <span style={{ fontSize: 'clamp(16px, 4vw, 20px)', fontWeight: 'bold' }}>Voter Portal</span>
         </div>
-        {account && (
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ color: '#10B981', fontSize: 11, fontWeight: 'bold' }}>WALLET CONNECTED</div>
-            <div style={{ color: '#94A3B8', fontSize: 12, fontFamily: 'monospace' }}>{account.slice(0,6)}...{account.slice(-4)}</div>
-          </div>
-        )}
+        
+        <div style={{ display: 'flex', gap: 20, alignItems: 'center' }}>
+          <nav style={{ display: 'flex', gap: 16 }}>
+            <button 
+              onClick={() => setStep('elections')}
+              style={{ background: 'none', border: 'none', color: step === 'elections' ? '#10B981' : '#94A3B8', fontWeight: 'bold', cursor: 'pointer', fontSize: 14 }}
+            >
+              ELECTIONS
+            </button>
+            <button 
+              onClick={() => setStep('profile')}
+              style={{ background: 'none', border: 'none', color: step === 'profile' ? '#10B981' : '#94A3B8', fontWeight: 'bold', cursor: 'pointer', fontSize: 14 }}
+            >
+              PROFILE
+            </button>
+          </nav>
+
+          {account && (
+            <div style={{ textAlign: 'right', borderLeft: '1px solid #334155', paddingLeft: 16 }} className="hidden sm:block">
+              <div style={{ color: '#10B981', fontSize: 10, fontWeight: 'bold' }}>CONNECTED</div>
+              <div style={{ color: '#94A3B8', fontSize: 11, fontFamily: 'monospace' }}>{account.slice(0,6)}...{account.slice(-4)}</div>
+            </div>
+          )}
+        </div>
       </header>
 
-      <main style={{ maxWidth: 1000, margin: '60px auto', padding: '0 20px 80px 20px' }}>
+      <main style={{ maxWidth: 1000, margin: '20px auto', padding: '0 20px 80px 20px' }}>
         
         {step === 'connect' && (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh', animation: 'fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1)' }}>
@@ -124,7 +184,7 @@ export default function VoterPortal() {
               background: 'rgba(27, 42, 59, 0.6)', 
               backdropFilter: 'blur(12px)',
               WebkitBackdropFilter: 'blur(12px)',
-              padding: '60px 40px', 
+              padding: '40px 20px', 
               borderRadius: '24px', 
               border: '1px solid rgba(16, 185, 129, 0.2)',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1)',
@@ -133,8 +193,8 @@ export default function VoterPortal() {
               width: '100%'
             }}>
               <div style={{ 
-                width: '120px', height: '120px', 
-                margin: '0 auto 32px', 
+                width: '100px', height: '100px', 
+                margin: '0 auto 24px', 
                 background: 'linear-gradient(135deg, rgba(246, 133, 27, 0.2) 0%, rgba(226, 118, 37, 0.05) 100%)',
                 borderRadius: '50%',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -142,27 +202,28 @@ export default function VoterPortal() {
                 boxShadow: '0 0 30px rgba(246, 133, 27, 0.15)',
                 animation: 'pulse 3s infinite alternate'
               }}>
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" style={{ width: '70px', height: '70px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }} />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="MetaMask" style={{ width: '60px', height: '60px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.3))' }} />
               </div>
               
-              <h2 style={{ fontSize: '36px', fontWeight: '800', marginBottom: '16px', background: 'linear-gradient(to right, #FFF, #94A3B8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+              <h2 style={{ fontSize: 'clamp(24px, 8vw, 36px)', fontWeight: '800', marginBottom: '16px', background: 'linear-gradient(to right, #FFF, #94A3B8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
                 Secure Authentication
               </h2>
               
-              <p style={{ color: '#94A3B8', fontSize: '16px', lineHeight: '1.6', marginBottom: '40px' }}>
+              <p style={{ color: '#94A3B8', fontSize: '15px', lineHeight: '1.6', marginBottom: '32px' }}>
                 Connect your MetaMask wallet to cryptographically verify your identity and access the decentralized voting node.
               </p>
               
               <button 
                 className="metamask-btn"
                 onClick={connectWallet} 
+                style={{ padding: '14px 20px', fontSize: '16px' }}
               >
-                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="Fox" style={{ width: '24px', height: '24px' }} />
-                <span>Connect with MetaMask</span>
+                <img src="https://upload.wikimedia.org/wikipedia/commons/3/36/MetaMask_Fox.svg" alt="Fox" style={{ width: '20px', height: '20px' }} />
+                <span>Connect Wallet</span>
               </button>
               
-              <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#64748B', fontSize: '13px' }}>
-                <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }}></span>
+              <div style={{ marginTop: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', color: '#64748B', fontSize: '12px' }}>
+                <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981' }}></span>
                 End-to-end encrypted connection
               </div>
             </div>
@@ -172,27 +233,27 @@ export default function VoterPortal() {
         {step === 'elections' && (
           <div>
             {!isEligible ? (
-              <div style={{ textAlign: 'center', padding: '60px 40px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, border: '1px solid #EF4444' }}>
-                <div style={{ fontSize: 60, marginBottom: 24 }}>🛑</div>
-                <h2 style={{ fontSize: 28, fontWeight: 'bold', color: '#EF4444', marginBottom: 16 }}>Access Restricted</h2>
-                <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 32, lineHeight: 1.6 }}>{errorMessage}</p>
-                <Link to="/register-voter" style={{ display: 'inline-block', padding: '12px 32px', background: '#EF4444', color: '#FFF', borderRadius: 8, textDecoration: 'none', fontWeight: 'bold' }}>Register Now</Link>
+              <div style={{ textAlign: 'center', padding: '40px 20px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: 16, border: '1px solid #EF4444' }}>
+                <div style={{ fontSize: 40, marginBottom: 16 }}>🛑</div>
+                <h2 style={{ fontSize: 24, fontWeight: 'bold', color: '#EF4444', marginBottom: 12 }}>Access Restricted</h2>
+                <p style={{ color: '#94A3B8', fontSize: 14, marginBottom: 24, lineHeight: 1.6 }}>{errorMessage}</p>
+                <Link to="/register-voter" style={{ display: 'inline-block', padding: '10px 24px', background: '#EF4444', color: '#FFF', borderRadius: 8, textDecoration: 'none', fontWeight: 'bold' }}>Register Now</Link>
               </div>
             ) : (
               <>
-                <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 12 }}>Active Elections</h2>
-                <p style={{ color: '#94A3B8', marginBottom: 40 }}>Select an election below to view candidates and cast your vote.</p>
+                <h2 style={{ fontSize: 'clamp(24px, 6vw, 32px)', fontWeight: 'bold', marginBottom: 12 }}>Active Elections</h2>
+                <p style={{ color: '#94A3B8', marginBottom: 32 }}>Select an election below to view candidates and cast your vote.</p>
                 
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: 24 }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 20 }}>
                   {elections.map(el => (
-                    <div key={el._id} style={{ background: '#1B2A3B', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
-                      <h3 style={{ fontSize: 22, fontWeight: 'bold', marginBottom: 12 }}>{el.title}</h3>
-                      <p style={{ color: '#94A3B8', fontSize: 14, marginBottom: 32, lineHeight: 1.6 }}>{el.description}</p>
+                    <div key={el._id} style={{ background: '#1B2A3B', padding: 24, borderRadius: 16, border: '1px solid #334155', display: 'flex', flexDirection: 'column' }}>
+                      <h3 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>{el.title}</h3>
+                      <p style={{ color: '#94A3B8', fontSize: 14, marginBottom: 24, lineHeight: 1.6, flex: 1 }}>{el.description}</p>
                       <button 
                         onClick={() => handleVoteNow(el)} 
                         disabled={el.hasVoted}
                         style={{ 
-                          width: '100%', padding: '14px', borderRadius: 8, border: 'none', fontWeight: 'bold', fontSize: 16, cursor: el.hasVoted ? 'default' : 'pointer',
+                          width: '100%', padding: '12px', borderRadius: 8, border: 'none', fontWeight: 'bold', fontSize: 15, cursor: el.hasVoted ? 'default' : 'pointer',
                           background: el.hasVoted ? '#334155' : '#10B981', color: el.hasVoted ? '#94A3B8' : '#000' 
                         }}
                       >
@@ -208,24 +269,24 @@ export default function VoterPortal() {
 
         {step === 'candidates' && (
           <div style={{ animation: 'fadeIn 0.3s ease' }}>
-            <button onClick={() => setStep('elections')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', marginBottom: 24, fontSize: 14 }}>← Back to Elections</button>
-            <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 8 }}>Candidate Selection</h2>
-            <p style={{ color: '#94A3B8', marginBottom: 48 }}>Election: <span style={{ color: '#FFF', fontWeight: 'bold' }}>{selectedElection.title}</span></p>
+            <button onClick={() => setStep('elections')} style={{ background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer', marginBottom: 20, fontSize: 13, display: 'flex', alignItems: 'center', gap: 5 }}>← Back to Elections</button>
+            <h2 style={{ fontSize: 'clamp(24px, 6vw, 32px)', fontWeight: 'bold', marginBottom: 8 }}>Candidate Selection</h2>
+            <p style={{ color: '#94A3B8', marginBottom: 32, fontSize: 14 }}>Election: <span style={{ color: '#FFF', fontWeight: 'bold' }}>{selectedElection.title}</span></p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 24, marginBottom: 56 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 40 }}>
               {candidates.map(c => (
                 <div 
                   key={c._id} 
                   onClick={() => setSelectedCandidate(c)}
                   style={{ 
-                    background: '#1B2A3B', padding: 32, borderRadius: 16, border: '2px solid', cursor: 'pointer', textAlign: 'center',
+                    background: '#1B2A3B', padding: 24, borderRadius: 16, border: '2px solid', cursor: 'pointer', textAlign: 'center',
                     borderColor: selectedCandidate?._id === c._id ? '#10B981' : '#334155',
                     transition: 'all 0.2s'
                   }}
                 >
-                  <div style={{ width: 90, height: 90, borderRadius: '50%', background: '#334155', margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>👤</div>
-                  <h3 style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 6 }}>{c.name}</h3>
-                  <div style={{ color: '#94A3B8', fontSize: 14 }}>{c.party}</div>
+                  <div style={{ width: 70, height: 70, borderRadius: '50%', background: '#334155', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 30 }}>👤</div>
+                  <h3 style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 4 }}>{c.name}</h3>
+                  <div style={{ color: '#94A3B8', fontSize: 13 }}>{c.party}</div>
                 </div>
               ))}
             </div>
@@ -235,33 +296,80 @@ export default function VoterPortal() {
                 onClick={handleConfirmVote} 
                 disabled={!selectedCandidate || loading}
                 style={{ 
-                  padding: '18px 80px', borderRadius: 12, border: 'none', fontWeight: 'bold', fontSize: 20, cursor: (!selectedCandidate || loading) ? 'default' : 'pointer',
+                  width: '100%', maxWidth: 400, padding: '16px 20px', borderRadius: 12, border: 'none', fontWeight: 'bold', fontSize: 18, cursor: (!selectedCandidate || loading) ? 'default' : 'pointer',
                   background: (!selectedCandidate || loading) ? '#334155' : '#10B981', color: '#000' 
                 }}
               >
-                {loading ? 'Processing Transaction...' : 'Confirm Vote'}
+                {loading ? 'Processing...' : 'Confirm Vote'}
               </button>
             </div>
           </div>
         )}
 
+        {step === 'profile' && (
+          <div style={{ animation: 'fadeIn 0.4s ease' }}>
+            <h2 style={{ fontSize: 'clamp(24px, 6vw, 32px)', fontWeight: 'bold', marginBottom: 24 }}>Voter Profile</h2>
+            <div style={{ background: '#1B2A3B', borderRadius: 16, border: '1px solid #334155', padding: '32px 24px', boxShadow: '0 10px 30px rgba(0,0,0,0.3)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 32, flexWrap: 'wrap' }}>
+                <div style={{ width: 100, height: 100, borderRadius: '50%', background: '#0D1B2A', border: '2px solid #10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 40 }}>👤</div>
+                <div>
+                  <h3 style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 4 }}>{voterUser?.name || 'Voter'}</h3>
+                  <div style={{ color: '#10B981', fontSize: 14, fontWeight: 'bold' }}>{voterUser?.email || 'N/A'}</div>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 24 }}>
+                <div style={{ background: '#0D1B2A', padding: 20, borderRadius: 12, border: '1px solid #1E3048' }}>
+                  <div style={{ color: '#94A3B8', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 }}>Elections Participated</div>
+                  <div style={{ fontSize: 24, fontWeight: 'bold' }}>{voterStats.voted || 0}</div>
+                </div>
+                <div style={{ background: '#0D1B2A', padding: 20, borderRadius: 12, border: '1px solid #1E3048' }}>
+                  <div style={{ color: '#94A3B8', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 }}>Available Polls</div>
+                  <div style={{ fontSize: 24, fontWeight: 'bold', color: '#10B981' }}>{voterStats.available || 0}</div>
+                </div>
+                <div style={{ background: '#0D1B2A', padding: 20, borderRadius: 12, border: '1px solid #1E3048' }}>
+                  <div style={{ color: '#94A3B8', fontSize: 11, fontWeight: 'bold', textTransform: 'uppercase', marginBottom: 8 }}>Wallet Link Status</div>
+                  <div style={{ fontSize: 14, fontWeight: 'bold', color: account ? '#10B981' : '#F59E0B' }}>{account ? '✓ LINKED' : '! NOT CONNECTED'}</div>
+                </div>
+              </div>
+
+                <h4 style={{ fontSize: 16, fontWeight: 'bold', marginBottom: 16 }}>Voter Identification</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+                    <span style={{ color: '#94A3B8' }}>Voter ID (EPIC):</span>
+                    <span style={{ fontWeight: 'bold', color: '#10B981' }}>{voterStats.epicNumber || 'Not Issued'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+                    <span style={{ color: '#94A3B8' }}>Account ID:</span>
+                    <span style={{ fontFamily: 'monospace' }}>{voterUser?.id || '---'}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14 }}>
+                    <span style={{ color: '#94A3B8' }}>Blockchain Address:</span>
+                    <span style={{ fontFamily: 'monospace' }}>{account || 'Not Connected'}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {step === 'status' && (
-          <div style={{ textAlign: 'center', padding: '60px 0', animation: 'scaleUp 0.4s ease' }}>
-            <div style={{ fontSize: 100, marginBottom: 32 }}>{txStatus.success ? '🎉' : '❌'}</div>
-            <h2 style={{ fontSize: 40, fontWeight: 'bold', marginBottom: 16 }}>{txStatus.success ? 'Transaction Successful' : 'Transaction Failed'}</h2>
-            <p style={{ color: '#94A3B8', fontSize: 18, marginBottom: 56, maxWidth: 600, margin: '0 auto 56px' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', animation: 'scaleUp 0.4s ease' }}>
+            <div style={{ fontSize: 80, marginBottom: 24 }}>{txStatus.success ? '🎉' : '❌'}</div>
+            <h2 style={{ fontSize: 'clamp(28px, 6vw, 36px)', fontWeight: 'bold', marginBottom: 12 }}>{txStatus.success ? 'Success!' : 'Failed'}</h2>
+            <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 40, maxWidth: 600, margin: '0 auto 40px', lineHeight: 1.6 }}>
               {txStatus.success 
-                ? 'Your vote has been cryptographically secured on the blockchain ledger. You can now verify its authenticity using your receipt.'
-                : `We encountered an issue while submitting your vote: ${txStatus.error}`}
+                ? 'Your vote has been cryptographically secured on the blockchain ledger.'
+                : `We encountered an issue: ${txStatus.error}`}
             </p>
             
-            <div style={{ display: 'flex', gap: 20, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: 16, justifyContent: 'center', flexWrap: 'wrap' }}>
               {txStatus.success && (
-                <Link to="/verify-vote" style={{ padding: '16px 40px', background: 'transparent', border: '2px solid #10B981', color: '#10B981', borderRadius: 8, textDecoration: 'none', fontWeight: 'bold', fontSize: 16 }}>
+                <Link to="/verify-vote" style={{ padding: '12px 24px', background: 'transparent', border: '2px solid #10B981', color: '#10B981', borderRadius: 8, textDecoration: 'none', fontWeight: 'bold', fontSize: 15 }}>
                   Verify Vote
                 </Link>
               )}
-              <button onClick={() => setStep('elections')} style={{ padding: '16px 40px', background: '#1B2A3B', border: '1px solid #334155', color: '#FFF', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', fontSize: 16 }}>
+              <button onClick={() => setStep('elections')} style={{ padding: '12px 24px', background: '#1B2A3B', border: '1px solid #334155', color: '#FFF', borderRadius: 8, fontWeight: 'bold', cursor: 'pointer', fontSize: 15 }}>
                 Return to Dashboard
               </button>
             </div>

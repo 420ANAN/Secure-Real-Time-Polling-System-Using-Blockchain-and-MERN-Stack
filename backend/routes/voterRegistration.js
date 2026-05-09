@@ -104,4 +104,38 @@ router.get('/status/:ref', async (req, res) => {
     }
 });
 
+// GET /api/register-voter/verify-epic?email=...&epic=...
+router.get('/verify-epic', async (req, res) => {
+    const { email, epic } = req.query;
+    try {
+        const application = await VoterApplication.findOne({ 
+            email: email.toLowerCase(), 
+            'previousVoter.epicNumber': epic.toUpperCase(),
+            status: 'APPROVED'
+        });
+        
+        if (!application) {
+            return res.status(404).json({ message: 'Invalid EPIC number or application not approved for this email.' });
+        }
+        
+        res.json({ success: true, walletAddress: application.walletAddress });
+    } catch (err) {
+        res.status(500).json({ message: 'Verification error' });
+    }
+});
+
+// GET /api/register-voter/status-by-email?email=...
+router.get('/status-by-email', async (req, res) => {
+    const { email } = req.query;
+    try {
+        const application = await VoterApplication.findOne({ email: email.toLowerCase() });
+        if (!application) {
+            return res.status(404).json({ message: 'No application found for this email.' });
+        }
+        res.json(application);
+    } catch (err) {
+        res.status(500).json({ message: 'Error checking registration status' });
+    }
+});
+
 module.exports = router;

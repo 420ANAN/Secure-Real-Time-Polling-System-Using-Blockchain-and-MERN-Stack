@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: 'http://localhost:5000/api' });
+const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api' });
 
 export const adminAPI = {
     getDashboard: () => API.get('/admin/dashboard'),
@@ -22,4 +22,5 @@ export const voterAPI = {
     verifyReceipt: (hash) => API.get(`/voter/verify/${hash}`),
     getResults: (id) => API.get(`/voter/results/${id}`),
     getStats: (address) => API.get(`/voter/stats/${address}`),
+    getRegistrationStatus: (email) => API.get(`/register-voter/status-by-email?email=${email}`),
 };

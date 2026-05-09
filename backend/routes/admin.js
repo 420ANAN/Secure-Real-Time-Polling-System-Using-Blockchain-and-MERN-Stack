@@ -78,7 +78,11 @@ router.get('/elections', async (req, res) => {
 router.patch('/elections/:id/status', async (req, res) => {
     const { status } = req.body; // DRAFT | ACTIVE | CLOSED
     try {
-        const election = await Election.findByIdAndUpdate(req.params.id, { status }, { new: true });
+        const updateData = { status };
+        if (status === 'ACTIVE') {
+            updateData.emergencyStopped = false;
+        }
+        const election = await Election.findByIdAndUpdate(req.params.id, updateData, { new: true });
         await log(`Election ${status}`, req.ip, { electionId: req.params.id });
         req.app.get('io')?.emit('electionUpdate', election);
         res.json(election);

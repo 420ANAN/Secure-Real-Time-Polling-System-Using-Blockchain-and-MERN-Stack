@@ -3,43 +3,29 @@ import { Routes, Route, Navigate, Link, useNavigate } from 'react-router-dom';
 import AdminDashboard from './components/AdminDashboard';
 import VoterPortal from './components/VoterPortal';
 import Results from './pages/Results';
+import ElectionsManager from './pages/ElectionsManager';
+import VoterAuth from './pages/VoterAuth';
+import CandidateManager from './pages/CandidateManager';
 
 import { adminAPI } from './api';
 import { WalletContext } from './context/WalletContext';
 
-const PresentationSlide = ({ children }) => {
-  const [scale, setScale] = React.useState({ x: 1, y: 1 });
-
-  React.useEffect(() => {
-    const handleResize = () => setScale({ x: window.innerWidth / 960, y: window.innerHeight / 540 });
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  return (
-    <div style={{ width: '100vw', height: '100vh', overflow: 'hidden', backgroundColor: '#0D1B2A', position: 'relative' }}>
-      <div style={{ width: 960, height: 540, position: 'absolute', top: 0, left: 0, transform: `scale(${scale.x}, ${scale.y})`, transformOrigin: 'top left' }}>
-        {children}
-      </div>
-    </div>
-  );
-};
+// PresentationSlide was removed to support true responsiveness.
 
 const VoterCard = ({ card }) => (
-  <div style={{ perspective: '1000px' }}>
-    <div id="voter-card-print-area" style={{ width: 500, height: 300, background: 'linear-gradient(135deg, #1B2A3B 0%, #0D1B2A 100%)', borderRadius: 20, border: '2px solid #10B981', padding: 24, position: 'relative', overflow: 'hidden', color: '#FFF', fontFamily: 'Inter, sans-serif' }}>
+  <div className="voter-card-container" style={{ perspective: '1000px', width: '100%', maxWidth: '500px' }}>
+    <div id="voter-card-print-area" style={{ minHeight: 300, background: 'linear-gradient(135deg, #1B2A3B 0%, #0D1B2A 100%)', borderRadius: 20, border: '2px solid #10B981', padding: 24, position: 'relative', overflow: 'hidden', color: '#FFF', fontFamily: 'Inter, sans-serif' }}>
       <div style={{ position: 'absolute', right: -40, bottom: -40, fontSize: 200, opacity: 0.1, transform: 'rotate(-20deg)' }}>🇮🇳</div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: 12, marginBottom: 20 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(16, 185, 129, 0.3)', paddingBottom: 12, marginBottom: 20, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ width: 40, height: 40, background: '#10B981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24 }}>🏛️</div>
           <div><div style={{ fontSize: 14, fontWeight: 'bold' }}>ELECTION COMMISSION</div><div style={{ fontSize: 10, color: '#10B981' }}>SECURE BLOCKCHAIN</div></div>
         </div>
         <div style={{ textAlign: 'right' }}><div style={{ fontSize: 10, color: '#94A3B8' }}>EPIC NO.</div><div style={{ fontSize: 18, fontWeight: 'bold', color: '#10B981' }}>{card.epicNumber}</div></div>
       </div>
-      <div style={{ display: 'flex', gap: 24 }}>
+      <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap' }}>
         <img src={card.photo} alt="P" style={{ width: 100, height: 120, borderRadius: 8, objectFit: 'cover' }} />
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8 }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 8, minWidth: '200px' }}>
           <div><label style={{ fontSize: 9, color: '#94A3B8' }}>NAME</label><div style={{ fontSize: 16, fontWeight: 'bold' }}>{card.fullName}</div></div>
           <div style={{ display: 'flex', gap: 24 }}>
             <div><label style={{ fontSize: 9, color: '#94A3B8' }}>GENDER</label><div>{card.gender}</div></div>
@@ -53,32 +39,32 @@ const VoterCard = ({ card }) => (
 );
 
 const Landing = () => (
-  <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif' }}>
+  <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', padding: '40px 20px' }}>
     <div style={{ position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 30 }}>
-      <img src="/image-1-1.png" alt="logo" style={{ width: 220, height: 220, opacity: 0.9 }} />
+      <img src="/image-1-1.png" alt="logo" style={{ width: 'clamp(120px, 40vw, 220px)', height: 'clamp(120px, 40vw, 220px)', opacity: 0.9 }} />
       <span style={{
         position: 'absolute',
         color: '#FFFFFF',
-        fontSize: 42,
+        fontSize: 'clamp(24px, 8vw, 42px)',
         fontWeight: 'bold',
         letterSpacing: 1,
         textShadow: '0 4px 15px rgba(0,0,0,0.8)',
         textAlign: 'center',
         pointerEvents: 'none',
-        marginTop: -30
+        marginTop: '-5%'
       }}>
         BlockVote
       </span>
     </div>
-    <p style={{ color: '#FFFFFF', fontSize: 52, fontWeight: 'bold', textAlign: 'center', marginBottom: 20, lineHeight: 1.1, letterSpacing: 1 }}>
+    <p style={{ color: '#FFFFFF', fontSize: 'clamp(28px, 10vw, 52px)', fontWeight: 'bold', textAlign: 'center', marginBottom: 20, lineHeight: 1.1, letterSpacing: 1 }}>
       Blockchain-Based<br />E-Voting Application
     </p>
-    <p style={{ color: '#00D4AA', fontSize: 16, marginBottom: 40, letterSpacing: 2 }}>Secure • Transparent • Immutable</p>
-    <div style={{ display: 'flex', gap: 24 }}>
-      <Link to="/admin" style={{ padding: '16px 32px', background: '#1B2A3B', color: '#EF4444', textDecoration: 'none', border: '1px solid #EF4444', borderRadius: 6, fontWeight: 'bold', fontSize: 16 }}>
+    <p style={{ color: '#00D4AA', fontSize: 'clamp(12px, 4vw, 16px)', marginBottom: 40, letterSpacing: 2, textAlign: 'center' }}>Secure • Transparent • Immutable</p>
+    <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', justifyContent: 'center' }}>
+      <Link to="/admin" style={{ padding: '16px 32px', background: '#1B2A3B', color: '#EF4444', textDecoration: 'none', border: '1px solid #EF4444', borderRadius: 6, fontWeight: 'bold', fontSize: 16, minWidth: '140px', textAlign: 'center' }}>
         Admin
       </Link>
-      <Link to="/voter-services" style={{ padding: '16px 32px', background: '#1B2A3B', color: '#10B981', textDecoration: 'none', border: '1px solid #10B981', borderRadius: 6, fontWeight: 'bold', fontSize: 16 }}>
+      <Link to="/voter-services" style={{ padding: '16px 32px', background: '#1B2A3B', color: '#10B981', textDecoration: 'none', border: '1px solid #10B981', borderRadius: 6, fontWeight: 'bold', fontSize: 16, minWidth: '140px', textAlign: 'center' }}>
         Voter
       </Link>
     </div>
@@ -138,9 +124,25 @@ const AdminLogin = ({ onLogin }) => {
 
 const VoterServices = () => {
   const navigate = useNavigate();
+  const [activeCount, setActiveCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/voter/stats/undefined');
+        const data = await res.json();
+        setActiveCount(data.available || 0);
+      } catch (err) {
+        console.error('Failed to fetch stats', err);
+      }
+    };
+    fetchStats();
+    const interval = setInterval(fetchStats, 10000);
+    return () => clearInterval(interval);
+  }, []);
 
   const services = [
-    { title: 'Voter Portal', desc: 'Securely cast your vote in active elections using your blockchain wallet.', icon: '🗳️', link: '/voter' },
+    { title: 'Voter Portal', desc: `Access the secure voting gateway. ${activeCount > 0 ? `${activeCount} active elections available.` : 'No live polls currently.'}`, icon: '🗳️', link: '/voter', badge: activeCount > 0 ? 'LIVE' : null },
     { title: 'Become Voter', desc: 'Apply for voter registration and verify your eligibility for upcoming polls.', icon: '🆔', link: '/register-voter' },
     { title: 'Live Results', desc: 'View real-time election results and statistics from the blockchain.', icon: '📊', link: '/results' },
     { title: 'Check EPIC Status', desc: 'Check your voter registration status and download your card using your reference ID.', icon: '🔍', link: '/check-status' },
@@ -149,21 +151,26 @@ const VoterServices = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', position: 'relative' }}>
-       <Link to="/" style={{ position: 'absolute', top: 30, left: 30, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8, zIndex: 10 }}>
-        <span style={{ fontSize: 20 }}>←</span> RETURN HOME
+       <Link to="/" style={{ position: 'absolute', top: 20, left: 20, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8, zIndex: 10 }}>
+        <span style={{ fontSize: 20 }}>←</span> <span className="hidden sm:inline">RETURN HOME</span>
       </Link>
 
-      <div style={{ padding: '80px 40px', maxWidth: 1080, margin: '0 auto' }}>
-        <h2 style={{ color: '#FFFFFF', fontSize: 36, fontWeight: 'bold', marginBottom: 12, textAlign: 'center' }}>Voter Services</h2>
+      <div style={{ padding: '60px 20px', maxWidth: 1080, margin: '0 auto' }}>
+        <h2 style={{ color: '#FFFFFF', fontSize: 'clamp(28px, 8vw, 36px)', fontWeight: 'bold', marginBottom: 12, textAlign: 'center', marginTop: 40 }}>Voter Services</h2>
         <p style={{ color: '#94A3B8', fontSize: 16, marginBottom: 48, textAlign: 'center' }}>Access decentralized tools and election participation portals</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 24 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 24 }}>
           {services.map(s => (
             <div key={s.title} onClick={() => s.link !== '#' && navigate(s.link)} style={{ 
               background: '#1B2A3B', padding: 32, borderRadius: 12, border: '1px solid #334155', cursor: s.link !== '#' ? 'pointer' : 'default',
-              transition: 'all 0.3s ease'
+              transition: 'all 0.3s ease', position: 'relative'
             }} onMouseEnter={e => { if(s.link !== '#') e.currentTarget.style.borderColor = '#10B981'; e.currentTarget.style.transform = 'translateY(-5px)'; e.currentTarget.style.background = '#1F2E3E'; }} 
                onMouseLeave={e => { e.currentTarget.style.borderColor = '#334155'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.background = '#1B2A3B'; }}>
+              
+              {s.badge && (
+                <div style={{ position: 'absolute', top: 12, right: 12, background: '#10B981', color: '#0D1B2A', fontSize: 10, fontWeight: 'bold', padding: '2px 8px', borderRadius: 4 }}>{s.badge}</div>
+              )}
+
               <div style={{ fontSize: 40, marginBottom: 16 }}>{s.icon}</div>
               <h3 style={{ color: '#FFFFFF', fontSize: 20, fontWeight: 'bold', marginBottom: 12 }}>{s.title}</h3>
               <p style={{ color: '#94A3B8', fontSize: 14, lineHeight: 1.5 }}>{s.desc}</p>
@@ -234,7 +241,7 @@ const SystemStatus = () => {
         <h2 style={{ fontSize: 32, fontWeight: 'bold', marginBottom: 8, textAlign: 'center' }}>System Status Dashboard</h2>
         <p style={{ color: '#00D4AA', fontSize: 14, letterSpacing: 2, marginBottom: 48, textAlign: 'center' }}>REAL-TIME DECENTRALIZED NETWORK MONITOR</p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginBottom: 40 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginBottom: 40 }}>
            {metrics.map(m => (
              <div key={m.label} style={{ background: '#1B2A3B', padding: 24, borderRadius: 12, border: '1px solid #334155' }}>
                <div style={{ color: '#94A3B8', fontSize: 12, marginBottom: 8, textTransform: 'uppercase' }}>{m.label}</div>
@@ -246,10 +253,10 @@ const SystemStatus = () => {
            ))}
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 40 }}>
-          <div style={{ background: '#1B2A3B', padding: 32, borderRadius: 16, border: '1px solid #334155' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 40 }}>
+          <div style={{ background: '#1B2A3B', padding: '32px 20px', borderRadius: 16, border: '1px solid #334155', overflowX: 'auto' }}>
             <h3 style={{ fontSize: 20, marginBottom: 24, fontWeight: 'bold' }}>Node Health</h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '500px' }}>
               <thead>
                 <tr style={{ color: '#94A3B8', fontSize: 12, textAlign: 'left', borderBottom: '1px solid #334155' }}>
                   <th style={{ padding: '0 0 12px 0' }}>NODE NAME</th>
@@ -347,10 +354,10 @@ const VoteVerification = () => {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
       <Link to="/voter-services" style={{ position: 'absolute', top: 30, left: 30, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 20 }}>←</span> RETURN HOME
+        <span style={{ fontSize: 20 }}>←</span> <span className="hidden sm:inline">RETURN HOME</span>
       </Link>
 
-      <div style={{ background: '#1B2A3B', padding: 40, borderRadius: 16, width: 420, border: '1px solid #334155', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+      <div style={{ background: '#1B2A3B', padding: '40px 20px', borderRadius: 16, width: '90%', maxWidth: 420, border: '1px solid #334155', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
         <h2 style={{ color: '#FFFFFF', fontSize: 24, fontWeight: 'bold', marginBottom: 32, textAlign: 'center' }}>Verify Your Vote</h2>
         
         <form onSubmit={handleVerify} style={{ marginBottom: 32 }}>
@@ -589,13 +596,13 @@ const VoterRegistration = () => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', color: '#FFF', position: 'relative', padding: '100px 20px' }}>
-      <Link to="/voter-services" style={{ position: 'absolute', top: 40, left: 40, color: '#94A3B8', textDecoration: 'none', fontSize: 15, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{ fontSize: 24 }}>←</span> RETURN HOME
+    <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', color: '#FFF', position: 'relative', padding: '80px 20px' }}>
+      <Link to="/voter-services" style={{ position: 'absolute', top: 30, left: 20, color: '#94A3B8', textDecoration: 'none', fontSize: 15, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 10 }}>
+        <span style={{ fontSize: 24 }}>←</span> <span className="hidden sm:inline">RETURN HOME</span>
       </Link>
       <div style={{ maxWidth: 900, margin: '0 auto' }}>
         <div style={{ textAlign: 'center', marginBottom: 60 }}>
-          <h1 style={{ fontSize: 48, fontWeight: 'bold', marginBottom: 16 }}>Voter Registration Form</h1>
+          <h1 style={{ fontSize: 'clamp(28px, 8vw, 48px)', fontWeight: 'bold', marginBottom: 16 }}>Voter Registration Form</h1>
           <p style={{ color: '#94A3B8', fontSize: 18 }}>Please provide accurate details. Our AI Agent will verify your eligibility instantly.</p>
         </div>
         {errors.length > 0 && (
@@ -608,18 +615,18 @@ const VoterRegistration = () => {
         )}
         <form onSubmit={handleSubmit}>
           <Section title="Basic Personal Details" icon="👤">
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
               <Field label="Full Name" path="fullName" formData={formData} onChange={handleChange} placeholder="John Quincy Doe" />
               <Field label="Gender" path="gender" formData={formData} onChange={handleChange} options={['Male', 'Female', 'Other']} />
               <Field label="Date of Birth" path="dob" formData={formData} onChange={handleChange} type="date" />
             </div>
           </Section>
           <Section title="Current Address Details" icon="📍">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
               <Field label="House No" path="currentAddress.houseNo" formData={formData} onChange={handleChange} placeholder="H-102" />
               <Field label="Street" path="currentAddress.street" formData={formData} onChange={handleChange} placeholder="Green Valley" />
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20 }}>
               <Field label="Town / Village" path="currentAddress.town" formData={formData} onChange={handleChange} placeholder="New Delhi" />
               <Field label="State" path="currentAddress.state" formData={formData} onChange={handleChange} options={Object.keys(INDIA_DATA)} />
               <Field label="District" path="currentAddress.district" formData={formData} onChange={handleChange} options={INDIA_DATA[formData.currentAddress.state] || []} />
@@ -627,7 +634,7 @@ const VoterRegistration = () => {
             <Field label="PIN Code" path="currentAddress.pinCode" formData={formData} onChange={handleChange} placeholder="110001" />
           </Section>
           <Section title="Contact & Identification" icon="📱">
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
               <Field label="Mobile Number" path="mobileNumber" formData={formData} onChange={handleChange} placeholder="91XXXXXXXXXX" />
               <Field label="Email ID" path="email" formData={formData} onChange={handleChange} type="email" placeholder="john@example.com" />
             </div>
@@ -702,10 +709,10 @@ const CheckStatus = () => {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#0D1B2A', fontFamily: 'Calibri, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative', padding: 20 }}>
-      <Link to="/voter-services" style={{ position: 'absolute', top: 30, left: 30, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8 }}>
-        <span style={{ fontSize: 20 }}>←</span> RETURN SERVICES
+      <Link to="/voter-services" style={{ position: 'absolute', top: 30, left: 20, color: '#94A3B8', textDecoration: 'none', fontSize: 14, fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: 8 }}>
+        <span style={{ fontSize: 20 }}>←</span> <span className="hidden sm:inline">RETURN SERVICES</span>
       </Link>
-      <div style={{ background: '#1B2A3B', padding: 40, borderRadius: 16, width: result && result.status === 'APPROVED' ? 580 : 420, border: '1px solid #334155', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
+      <div style={{ background: '#1B2A3B', padding: '40px 20px', borderRadius: 16, width: '90%', maxWidth: result && result.status === 'APPROVED' ? 580 : 420, border: '1px solid #334155', boxShadow: '0 10px 30px rgba(0,0,0,0.5)' }}>
         <h2 style={{ color: '#FFFFFF', fontSize: 24, fontWeight: 'bold', marginBottom: 32, textAlign: 'center' }}>Check EPIC Status</h2>
         <form onSubmit={handleCheck} style={{ marginBottom: 32 }}>
           <div style={{ display: 'flex', gap: 12 }}>
@@ -744,14 +751,30 @@ const CheckStatus = () => {
 function App() {
   const [adminPage, setAdminPage] = React.useState('dashboard');
   const [isAdminAuthenticated, setIsAdminAuthenticated] = React.useState(false);
+  const [isVoterAuthenticated, setIsVoterAuthenticated] = React.useState(false);
+  const [voterUser, setVoterUser] = React.useState(null);
+
+  const handleVoterLogin = (user) => {
+    setVoterUser(user);
+    setIsVoterAuthenticated(true);
+  };
+
+  const handleVoterLogout = () => {
+    setVoterUser(null);
+    setIsVoterAuthenticated(false);
+  };
 
   return (
     <Routes>
       <Route path="/" element={<Landing />} />
-      <Route path="/admin" element={isAdminAuthenticated ? <PresentationSlide><AdminDashboard onNavigate={setAdminPage} /></PresentationSlide> : <AdminLogin onLogin={() => setIsAdminAuthenticated(true)} />} />
-      <Route path="/voter" element={<PresentationSlide><VoterPortal /></PresentationSlide>} />
+      <Route path="/admin" element={isAdminAuthenticated ? <AdminDashboard onNavigate={setAdminPage} /> : <AdminLogin onLogin={() => setIsAdminAuthenticated(true)} />} />
+      <Route path="/admin/elections" element={isAdminAuthenticated ? <ElectionsManager /> : <AdminLogin onLogin={() => setIsAdminAuthenticated(true)} />} />
+      <Route path="/admin/candidates" element={isAdminAuthenticated ? <CandidateManager /> : <AdminLogin onLogin={() => setIsAdminAuthenticated(true)} />} />
+      <Route path="/voter" element={isVoterAuthenticated
+        ? <VoterPortal voterUser={voterUser} onLogout={handleVoterLogout} />
+        : <VoterAuth onSuccess={handleVoterLogin} />} />
       <Route path="/voter-services" element={<VoterServices />} />
-      <Route path="/results" element={<PresentationSlide><Results /></PresentationSlide>} />
+      <Route path="/results" element={<Results />} />
       <Route path="/system-status" element={<SystemStatus />} />
       <Route path="/verify-vote" element={<VoteVerification />} />
       <Route path="/register-voter" element={<VoterRegistration />} />

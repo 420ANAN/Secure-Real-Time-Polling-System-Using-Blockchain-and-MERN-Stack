@@ -7,30 +7,26 @@ const Vote = require('../models/Vote');
 
 // GET /api/voter/elections — get active elections for a wallet address
 router.get('/elections', async (req, res) => {
-    const { address } = req.query;
+    let { address } = req.query;
     try {
-        // Eligibility Check: Must have an APPROVED VoterApplication
-        if (address) {
-            const VoterApplication = require('../models/VoterApplication');
-            const application = await VoterApplication.findOne({ 
-                walletAddress: address.toLowerCase(), 
-                status: 'APPROVED' 
-            });
-            
-            if (!application) {
-                return res.status(403).json({ 
-                    message: 'Access Denied: You must be an approved voter to view elections. Please register and wait for Admin approval.',
-                    isEligible: false 
-                });
-            }
-        }
+        const isInvalidAddress = !address || address === 'undefined' || address === 'null' || address === '';
+        if (!isInvalidAddress) address = address.toLowerCase();
 
-        const elections = await Election.find({ status: 'ACTIVE', emergencyStopped: false });
+        // 1. Fetch all active elections
+        const elections = await Election.find({ status: 'ACTIVE', emergencyStopped: { $ne: true } });
         
-        // For each election, check if voter has already voted and is whitelisted
+        // 2. Enrich and Filter
         const enriched = await Promise.all(elections.map(async (e) => {
-            const hasVoted = await Vote.findOne({ electionId: e._id.toString(), voterAddress: address });
-            const isWhitelisted = !address || e.whitelistedAddresses.includes(address) || e.whitelistedAddresses.length === 0;
+            const hasVoted = (!isInvalidAddress) ? await Vote.findOne({ electionId: e._id.toString(), $or: [{ voterAddress: address }] }) : null;
+            
+            // An election is "assigned/visible" if:
+            // - It is public (whitelistedAddresses is empty)
+            // - OR the voter's address is in the whitelist
+            const isWhitelisted = e.whitelistedAddresses.length === 0 || 
+                                 (!isInvalidAddress && e.whitelistedAddresses.map(a => a.toLowerCase()).includes(address));
+            
+            if (!isWhitelisted) return null;
+
             return {
                 ...e.toObject(),
                 hasVoted: !!hasVoted,
@@ -38,7 +34,8 @@ router.get('/elections', async (req, res) => {
             };
         }));
         
-        res.json(enriched);
+        // Remove nulls (non-whitelisted elections)
+        res.json(enriched.filter(e => e !== null));
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -56,9 +53,9 @@ router.get('/elections/:id/candidates', async (req, res) => {
 
 // POST /api/voter/vote — cast a vote
 router.post('/vote', async (req, res) => {
-    const { electionId, candidateId, voterAddress } = req.body;
+    const { voterId, electionId, candidateId, walletAddress, transactionHash, votedAt } = req.body;
     
-    if (!voterAddress || !electionId || !candidateId) {
+    if (!voterId || !walletAddress || !electionId || !candidateId) {
         return res.status(400).json({ message: 'Missing required fields' });
     }
 
@@ -69,27 +66,36 @@ router.post('/vote', async (req, res) => {
         if (election.status !== 'ACTIVE') return res.status(400).json({ message: 'Election is not active' });
         if (election.emergencyStopped) return res.status(400).json({ message: 'Voting halted by emergency stop' });
 
-        // One-person-one-vote check
-        const alreadyVoted = await Vote.findOne({ electionId, voterAddress });
-        if (alreadyVoted) return res.status(409).json({ message: 'You have already voted in this election' });
-
         // Check eligibility (whitelist)
-        if (election.whitelistedAddresses.length > 0 && !election.whitelistedAddresses.includes(voterAddress)) {
-            return res.status(403).json({ message: 'Address not whitelisted for this election' });
+        const normalizedAddress = walletAddress.toLowerCase();
+        if (election.whitelistedAddresses.length > 0 && 
+            !election.whitelistedAddresses.map(a => a.toLowerCase()).includes(normalizedAddress)) {
+            return res.status(403).json({ message: 'This wallet address is not whitelisted for this election.' });
         }
 
+        // One-person-one-vote check
+        const alreadyVoted = await Vote.findOne({ 
+            $or: [
+                { electionId, voterId },
+                { electionId, voterAddress: normalizedAddress }
+            ]
+        });
+        if (alreadyVoted) return res.status(409).json({ message: 'You have already voted in this election.' });
+
         // Generate SHA-256 receipt (hides candidate choice)
-        const receiptData = `${electionId}-${voterAddress}-${Date.now()}`;
+        const receiptData = `${electionId}-${voterId}-${Date.now()}`;
         const receiptHash = crypto.createHash('sha256').update(receiptData).digest('hex');
 
         // Save vote
         const vote = await Vote.create({
+            voterId,
             electionId,
             candidateId,
-            voterAddress,
+            voterAddress: normalizedAddress,
             receiptHash,
-            txHash: `0x${receiptHash.slice(0, 40)}`, // Mock tx hash
-            blockNumber: Math.floor(Math.random() * 1000000) + 18000000
+            txHash: transactionHash || `0x${receiptHash.slice(0, 40)}`,
+            blockNumber: Math.floor(Math.random() * 1000000) + 18000000,
+            votedAt: votedAt || new Date()
         });
 
         // Update tally
@@ -157,6 +163,13 @@ router.get('/stats/:address', async (req, res) => {
         const address = req.params.address;
 
         // Eligibility Check
+        const activeElections = await Election.countDocuments({ status: 'ACTIVE', emergencyStopped: { $ne: true } });
+        
+        const isInvalidAddress = !address || address === 'undefined' || address === 'null' || address === '';
+        if (isInvalidAddress) {
+            return res.json({ available: activeElections, voted: 0, pending: activeElections, isEligible: false });
+        }
+
         const VoterApplication = require('../models/VoterApplication');
         const application = await VoterApplication.findOne({ 
             walletAddress: address.toLowerCase(), 
@@ -164,10 +177,9 @@ router.get('/stats/:address', async (req, res) => {
         });
 
         if (!application) {
-            return res.json({ available: 0, voted: 0, pending: 0, isEligible: false });
+            return res.json({ available: activeElections, voted: 0, pending: activeElections, isEligible: false });
         }
 
-        const activeElections = await Election.countDocuments({ status: 'ACTIVE', emergencyStopped: false });
         const votedCount = await Vote.countDocuments({ voterAddress: address });
         const allActive = await Election.find({ status: 'ACTIVE' });
         const pendingCount = allActive.filter(e =>
@@ -179,6 +191,30 @@ router.get('/stats/:address', async (req, res) => {
             voted: votedCount,
             pending: Math.max(0, pendingCount)
         });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+// GET /api/voter/public-results — get summary of all active election results
+router.get('/public-results', async (req, res) => {
+    try {
+        const elections = await Election.find({ status: 'ACTIVE' });
+        const results = await Promise.all(elections.map(async (e) => {
+            const candidates = await Candidate.find({ electionId: e._id });
+            return {
+                _id: e._id,
+                title: e.title,
+                description: e.description,
+                totalVotes: e.totalVotes,
+                candidates: candidates.map(c => ({
+                    name: c.name,
+                    party: c.party,
+                    votes: c.votes
+                }))
+            };
+        }));
+        res.json(results);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
