@@ -28,13 +28,19 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 
 // Middleware
+const cors = require("cors");
+
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "http://secure-real-time-polling-system-usi-beta.vercel.app"
+        "https://secure-real-time-polling-system-usi-beta.vercel.app"
     ],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
 }));
+
+app.options("*", cors());
 app.use(express.json());
 
 // Database Connection
