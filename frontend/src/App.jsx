@@ -635,6 +635,41 @@ const VoterRegistration = () => {
             </div>
             <Field label="PIN Code" path="currentAddress.pinCode" formData={formData} onChange={handleChange} placeholder="110001" />
           </Section>
+          <Section title="Document Verification" icon="📄">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
+              <Field 
+                label="Citizenship Proof" 
+                path="documents.citizenshipProofType" 
+                formData={formData} 
+                onChange={handleChange} 
+                options={['Passport', 'Birth Certificate', 'Voter ID (Old)', 'Pan Card']} 
+              />
+              <Field 
+                label="Document ID / Link" 
+                path="documents.citizenshipProofFile" 
+                formData={formData} 
+                onChange={handleChange} 
+                placeholder="Enter Document Number or Link" 
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginTop: 16 }}>
+              <Field 
+                label="Age Proof" 
+                path="documents.ageProofType" 
+                formData={formData} 
+                onChange={handleChange} 
+                options={['Birth Certificate', 'Class 10 Certificate', 'Passport']} 
+              />
+              <Field 
+                label="Address Proof" 
+                path="documents.addressProofType" 
+                formData={formData} 
+                onChange={handleChange} 
+                options={['Aadhaar Card', 'Electricity Bill', 'Rent Agreement']} 
+              />
+            </div>
+          </Section>
+
           <Section title="Contact & Identification" icon="📱">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 20 }}>
               <Field label="Mobile Number" path="mobileNumber" formData={formData} onChange={handleChange} placeholder="91XXXXXXXXXX" />
