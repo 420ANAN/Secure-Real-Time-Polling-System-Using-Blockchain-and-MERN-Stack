@@ -1,7 +1,7 @@
 require('dotenv').config({ override: true }); // override stale system ENV vars
 const dns = require('dns');
 // Use a robust list of DNS servers to resolve SRV records
-dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1', '208.67.222.222']); 
+dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1', '208.67.222.222']);
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -59,6 +59,6 @@ app.get('/', (req, res) => {
     res.json({ status: 'VoteSecure API running', version: '2.0' });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, "0.0.0.0", () => {
     console.log(`VoteSecure API Gateway running on port ${PORT}`);
 });
