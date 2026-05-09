@@ -504,6 +504,7 @@ const VoterRegistration = () => {
     documents: {
       citizenshipProofType: 'Passport',
       citizenshipProofFile: '',
+      documentNumber: '',
       ageProofType: 'Birth Certificate',
       addressProofType: 'Aadhaar Card',
       photograph: 'https://images.unsplash.com/photo-1633332755192-727a05c4013d?auto=format&fit=crop&q=80&w=200&h=200'
@@ -638,35 +639,56 @@ const VoterRegistration = () => {
           <Section title="Document Verification" icon="📄">
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20 }}>
               <Field 
-                label="Citizenship Proof" 
+                label="Citizenship Proof Type" 
                 path="documents.citizenshipProofType" 
                 formData={formData} 
                 onChange={handleChange} 
                 options={['Passport', 'Birth Certificate', 'Voter ID (Old)', 'Pan Card']} 
               />
-              <Field 
-                label="Document ID / Link" 
-                path="documents.citizenshipProofFile" 
-                formData={formData} 
-                onChange={handleChange} 
-                placeholder="Enter Document Number or Link" 
-              />
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 20, marginTop: 16 }}>
-              <Field 
-                label="Age Proof" 
-                path="documents.ageProofType" 
-                formData={formData} 
-                onChange={handleChange} 
-                options={['Birth Certificate', 'Class 10 Certificate', 'Passport']} 
-              />
-              <Field 
-                label="Address Proof" 
-                path="documents.addressProofType" 
-                formData={formData} 
-                onChange={handleChange} 
-                options={['Aadhaar Card', 'Electricity Bill', 'Rent Agreement']} 
-              />
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>Citizenship Document</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  <input 
+                    type="file" 
+                    accept="image/*,.pdf"
+                    onChange={async (e) => {
+                      const file = e.target.files[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          handleChange('documents.citizenshipProofFile', reader.result);
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }}
+                    style={{ 
+                      width: '100%', padding: '10px', background: '#0D1B2A', 
+                      border: '1px solid #334155', color: '#FFF', borderRadius: 6, fontSize: 12 
+                    }} 
+                  />
+                  <div style={{ textAlign: 'center', color: '#475569', fontSize: 10, fontWeight: 'bold' }}>— OR —</div>
+                  <input 
+                    type="text" 
+                    placeholder="Paste Document Link (e.g. Google Drive, Dropbox)" 
+                    value={formData.documents.citizenshipProofFile.startsWith('data:') ? '' : formData.documents.citizenshipProofFile}
+                    onChange={(e) => handleChange('documents.citizenshipProofFile', e.target.value)}
+                    style={{ width: '100%', padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6, fontSize: 14 }} 
+                  />
+                  {formData.documents.citizenshipProofFile.startsWith('data:') && (
+                    <div style={{ color: '#10B981', fontSize: 11, fontWeight: 'bold' }}>✓ File ready for upload</div>
+                  )}
+                </div>
+              </div>
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'block', color: '#94A3B8', fontSize: 12, fontWeight: 'bold', marginBottom: 8, textTransform: 'uppercase' }}>Document Identification Number</label>
+                <input 
+                  type="text" 
+                  placeholder="Enter ID Number (e.g. Passport #)" 
+                  value={formData.documents.documentNumber}
+                  onChange={(e) => handleChange('documents.documentNumber', e.target.value)}
+                  style={{ width: '100%', padding: '12px', background: '#0D1B2A', border: '1px solid #334155', color: '#FFF', borderRadius: 6, fontSize: 14 }} 
+                />
+              </div>
             </div>
           </Section>
 
